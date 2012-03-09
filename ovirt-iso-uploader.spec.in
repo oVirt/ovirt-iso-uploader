@@ -1,0 +1,37 @@
+Name: $name
+Version: $version
+Release: 0%{?dist}
+Source: %{name}-%{version}.tar.gz
+License: ASL 2.0
+Summary: ISO Uploader for oVirt Engine
+Group: Virtualization/Management
+URL: http://www.ovirt.org
+BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}
+BuildArch: noarch
+BuildRequires: python-devel
+Requires: policycoreutils-python
+Requires: python-lxml
+Requires: ovirt-engine-sdk
+
+%description
+ISO Uploader tool for oVirt Engine
+%prep
+%setup -q
+
+%build
+
+%install
+rm -rf %{buildroot}/*
+make PREFIX=%{buildroot}/ install
+
+%files
+%attr (755,root,root) %{_datadir}/ovirt-engine/iso-uploader
+%{_bindir}/engine-iso-uploader
+%config(noreplace) %{_sysconfdir}/ovirt-engine/isouploader.conf
+%doc  %{_mandir}/man8/engine-iso-uploader.8.gz
+%doc AUTHORS
+%doc LICENSE
+
+%changelog
+* Thu Mar 8 2012 Keith Robertson <kroberts@redhat.com> - 1.0.0-0
+- Initial build

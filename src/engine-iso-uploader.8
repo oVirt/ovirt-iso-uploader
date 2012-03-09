@@ -1,16 +1,16 @@
 .\" engine-iso-uploader - oVirt Engine Tool for Uploading ISO Images
 .TH "engine-iso-uploader" "8" "" "Keith Robertson" ""
 .SH "NAME"
-engine\-iso\-uploader \- oVirt Enterprise Virtualization Engine Manager (RHEV\-M) ISO Uploader
+engine\-iso\-uploader \- oVirt Enterprise Virtualization Engine Manager ISO Uploader
 .SH "SYNOPSIS"
 \fBengine\-iso\-uploader\fP [options] list
 .PP
 \fBengine\-iso\-uploader\fP [options] upload [file]...
 .SH "DESCRIPTION"
 .PP
-The \fBengine\-iso\-uploader\fP can be used to list the names of ISO storage domains (not the images stored in those domains) and upload files to storage domains associated with a RHEV\-M. The upload operation supports multiple files (separated by spaces) and wildcarding.\&
+The \fBengine\-iso\-uploader\fP can be used to list the names of ISO storage domains (not the images stored in those domains) and upload files to storage domains. The upload operation supports multiple files (separated by spaces) and wildcarding.\&
 .PP
-The \fBengine\-iso\-uploader\fP will, by default, attempt to interact with the RHEV\-M REST API.  This command typically gets the RHEV\-M's hostname and port number (engine=) and user name (user=) from the \fB/etc/engine/logcollector.conf\fP file. Alternatively, you can provide the user name and password from the command line. The user name and password are authenticated by the authentication service associated with the RHEV\-M.  Currently, a special local account (admin), Red Hat IPA server, and Microsoft Active Directory server is supported for this task.
+The \fBengine\-iso\-uploader\fP will, by default, attempt to interact with the REST API.  This command typically gets the oVirt engine manager's hostname and port number (engine=) and user name (user=) from the \fB/etc/engine/logcollector.conf\fP file. Alternatively, you can provide the user name and password from the command line. The user name and password are authenticated by the authentication service associated with the oVirt engine manager.  Currently, a special local account (admin), Red Hat IPA server, and Microsoft Active Directory server is supported for this task.
 .PP
 The reason \fBengine\-iso\-uploader\fP needs to interact with the REST API is so it can discover metadata (the IP address and path information) for the NFS server hosting the ISO storage domain. The only way to bypass the REST API (and not require a user name and password) is if you provide the fully qualified address and path to the NFS server. This can be useful if JBoss is off\-line or if you know the full path to the domain on the NFS server. However, keep in mind that the path names are not intuitive. You cannot bypass the REST API if you are using SSH to copy files to the server.\&
 .PP
@@ -33,11 +33,11 @@ Display verbose output.\&
 .IP "\fB\-f, \-\-force\fP"
 Replace like-named files on the target file server (default=off).\&
 .SH "oVirt Engine CONFIGURATION OPTIONS"
-The options in the RHEV\-M group are used by the tool to gain authorization to the RHEV\-M REST API. The options in this group are available for both list and upload commands.\&
+The options in the oVirt Engine Configuration group are used by the tool to gain authorization to the REST API. The options in this group are available for both list and upload commands.\&
 .IP "\fB\-u user@engine.example.com, \-\-user=user@engine.example.com\fP"
 Sets the user name to use with the REST API. This should be in UPN format.\&
 .IP "\fB\-r engine.example.com, \-\-engine=engine.example.com\fP"
-Hostname or IP address of the RHEV\-M (default=localhost:8443).\&
+Hostname or IP address of the oVirt Engine (default=localhost:8443).\&
 .SH "ISO STORAGE DOMAIN CONFIGURATION OPTIONS"
 The options in the upload configuration group let you specify the ISO storage domain to which files should be uploaded.\&
 .IP "\fB\-i ISODOMAIN, \-\-iso\-domain=ISODOMAIN\fP"
@@ -53,13 +53,13 @@ The SSH port to connect on (default=22).\&
 .IP "\fB\-k KEYFILE, \-\-key\-file=KEYFILE\fP"
 The identity file (private key) to be used for accessing the file server. If an identity file is not supplied, the program prompts for a password. It is strongly recommended to use key based authentication with SSH because the program may make multiple SSH connections, resulting in multiple requests for the SSH password.\&
 .SH "EXAMPLES"
-Using the default local RHEV\-M and ISO Domain, there are simple ways to run \fBengine\-iso\-uploader\fP to work with the ISO images associated with the RHEV\-M. To list the names of your ISO domains, just add the \fBlist\fP option, then provide the username and password, when prompted:\&
+Using the default local oVirt engine manager and ISO Domain, there are simple ways to run \fBengine\-iso\-uploader\fP to work with the ISO images associated with the oVirt engine manager. To list the names of your ISO domains, just add the \fBlist\fP option, then provide the username and password, when prompted:\&
 .PP
 # \fBengine\-iso\-uploader\fP list
 .br
-Please provide the REST API username for RHEV\-M (CTRL+D to abort): \fBmyadmin\fP
+Please provide the REST API username for oVirt Engine (CTRL+D to abort): \fBadmin@internal\fP
 .br
-Please provide the REST API password for RHEV\-M (CTRL+D to abort): \fB********\fP
+Please provide the REST API password for the admin@internal oVirt Engine user (CTRL+D to abort): \fB********\fP
 .br
 ISO Storage Domain Name   | Datacenter                | ISO Domain Status
 .br
@@ -72,7 +72,7 @@ To upload an ISO image (for example, abc.iso), you could use the following comma
 .PP
 # \fBengine\-iso\-uploader\fP \-\-iso\-domain=ISO upload /mnt/stuff/abc.iso
 .PP
-This next example uploads a file to the domain named ISO, indicating the username, name of the ISO domain (ISO), location of the RHEV\-M (192.168.0.1) and the user name (root) used by the ssh command to transfer the files (/tmp/files/*.vfd).\&
+This next example uploads a file to the domain named ISO, indicating the username, name of the ISO domain (ISO), location of the oVirt engine manager (192.168.0.1) and the user name (root) used by the ssh command to transfer the files (/tmp/files/*.vfd).\&
 .PP
 # \fBengine\-iso\-uploader\fP \-u joe@a.example.com \-\-iso\-domain=ISO \\
      \-r 192.168.0.1 \-\-ssh\-user=root upload /tmp/files/*.vfd
@@ -99,17 +99,17 @@ For configuration information, \fBengine\-iso\-uploader\fP always first pulls in
 .PP
 [ISOUploader]\&
 .br
-###  RHEV\-M Configuration:\&
+###  oVirt Engine Configuration:\&
 .br
 ## username to use with the REST API\&
 .br
 user=joe@example.com\&
 .br
-#  the RHEV\-M REST API password.\&
+#  he oVirt Engine REST API password.\&
 .br
 passwd=L1ghtNingFst1!\&
 .br
-## hostname or IP address of the RHEV\-M\&
+## hostname or IP address of the oVirt Engine\&
 .br
 engine=myengine.example.com:8443\&
 .SH "RETURN VALUES"
