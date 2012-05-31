@@ -934,7 +934,6 @@ resulting in multiple requests for the SSH password."""),
     except Exception, e:
         logging.error("%s" % e)
         logging.info(_("Use the -h option to see usage."))
-        parser.print_help()
         if conf and (conf.get("verbose")):
             logging.debug(_("Configuration:"))
             logging.debug(_("command: %s") % conf.command)
