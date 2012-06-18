@@ -653,7 +653,7 @@ class ISOUploader(object):
         if not self._initialize_api():
             return
         try:
-            sd = self.api.storagedomains.get(id)
+            sd = self.api.storagedomains.get(id=id)
             if sd is not None and sd.files is not None:
                 sd.files.list()
         except Exception,e:
