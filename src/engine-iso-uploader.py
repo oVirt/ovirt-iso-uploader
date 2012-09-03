@@ -728,6 +728,7 @@ class ISOUploader(object):
                             self.rename_file_ssh(user, address, temp_dest_file, dest_file)
                             # Force oVirt Engine to refresh the list of files in the ISO domain
                             self.refresh_iso_domain(id)
+                            logging.info("\nINFO: ISO image uploaded successfully\n")
                         else:
                             logging.error(_('There is not enough space in %s (%s bytes) for %s (%s bytes)' %
                                             (path, dir_size, file, file_size)))
@@ -772,6 +773,7 @@ class ISOUploader(object):
                                     # Force oVirt Engine to refresh the list of files in the ISO domain
                                     if id is not None:
                                         self.refresh_iso_domain(id)
+                                    logging.info("\nINFO: ISO image copied successfully\n")
                             else:
                                 logging.error(_('There is not enough space in %s (%s bytes) for %s (%s bytes)' %
                                               (path, dir_size, file, file_size)))
