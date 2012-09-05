@@ -19,6 +19,7 @@ from pwd import getpwnam
 import getpass
 from ovirtsdk.api import API
 from ovirtsdk.xml import params
+from ovirtsdk.infrastructure.errors import RequestError, ConnectionError, NoCertificatesError
 
 
 APP_NAME = "engine-iso-uploader"
@@ -353,10 +354,13 @@ class ISOUploader(object):
                 raise Exception("Insufficient information provided to communicate with the oVirt Engine REST API.")
 
             url = "https://" + self.configuration.get("engine") + "/api"
-            self.api = API(url=url,
-                           username=self.configuration.get("user"),
-                           password=self.configuration.get("passwd"))
             try:
+                self.api = API(url=url,
+                               username=self.configuration.get("user"),
+                               password=self.configuration.get("passwd"),
+                               ca_file=self.configuration.get("engine_ca"),
+                               insecure=self.configuration.get("insecure"))
+
                 pi = self.api.get_product_info()
                 if pi is not None:
                     vrm = '%s.%s.%s' % (pi.get_version().get_major(),
@@ -366,6 +370,15 @@ class ISOUploader(object):
                 else:
                     logging.error(_("Unable to connect to REST API."))
                     return False
+            except RequestError, re:
+                logging.error(_("Unable to connect to REST API.  Reason: %s") %  re.reason)
+                return False
+            except ConnectionError:
+                logging.error(_("Problem connecting to the REST API.  Is the service available and does the CA certificate exist?"))
+                return False
+            except NoCertificatesError:
+                logging.error(_("Problem connecting to the REST API.  The CA is invalid.  To override use the \'insecure\' option."))
+                return False
             except Exception, e:
                 logging.error(_("Unable to connect to REST API.  Message: %s") %  e)
                 return False
@@ -854,6 +867,16 @@ wildcarding.""")
                       dest="conf_file",
                       help=_("path to configuration file (default=%s)" % DEFAULT_CONFIGURATION_FILE),
                       metavar=_("PATH"))
+
+    parser.add_option("", "--engine-ca", dest="engine_ca",
+                      help="The CA certificate used to validate the engine. (default=/etc/pki/ovirt-engine/ca.pem)",
+                      metavar="/etc/pki/ovirt-engine/ca.pem",
+                      default="/etc/pki/ovirt-engine/ca.pem")
+
+    parser.add_option("", "--insecure", dest="insecure",
+                      help="Do not make an attempt to verify the engine.",
+                      action="store_true",
+                      default=False)
 
     parser.add_option("-v", "--verbose", dest="verbose",
             action="store_true", default=False)
