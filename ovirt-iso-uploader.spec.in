@@ -1,37 +1,64 @@
-Name: $name
-Version: $version
-Release: 0%{?dist}
-Source: %{name}-%{version}.tar.gz
-License: ASL 2.0
-Summary: ISO Uploader for oVirt Engine
-Group: Virtualization/Management
-URL: http://www.ovirt.org
-BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}
-BuildArch: noarch
-BuildRequires: python-devel
-Requires: policycoreutils-python
-Requires: python-lxml
-Requires: ovirt-engine-sdk
+#
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+%global		package_version @PACKAGE_VERSION@
+
+Summary:	ISO Uploader for oVirt Engine
+Name:		@PACKAGE_NAME@
+Version:	@PACKAGE_RPM_VERSION@
+Release:	@PACKAGE_RPM_RELEASE@%{?release_suffix}%{?dist}
+License:	ASL 2.0
+URL:		http://www.ovirt.org
+Source:		http://resources.ovirt.org/releases/stable/src/%{name}-%{package_version}.tar.gz
+Group:		Virtualization/Management
+
+BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}
+BuildArch:	noarch
+Requires:	gettext
+Requires:	python
+Requires:	ovirt-engine-sdk
+BuildRequires:	gettext-devel
+BuildRequires:	python2-devel
 
 %description
 ISO Uploader tool for oVirt Engine
+
 %prep
-%setup -q
+%setup -q -n %{name}-%{package_version}
 
 %build
+%configure \
+	--docdir="%{_docdir}/%{name}-%{version}"
+make %{?_smp_mflags}
 
 %install
-rm -rf %{buildroot}/*
-make PREFIX=%{buildroot}/ install
+rm -rf "%{buildroot}"
+make %{?_smp_mflags} install DESTDIR="%{buildroot}"
 
 %files
-%attr (755,root,root) %{_datadir}/ovirt-engine/iso-uploader
-%{_bindir}/engine-iso-uploader
-%config(noreplace) %{_sysconfdir}/ovirt-engine/isouploader.conf
-%doc  %{_mandir}/man8/engine-iso-uploader.8.gz
 %doc AUTHORS
-%doc LICENSE
+%doc COPYING
+%config(noreplace) %{_sysconfdir}/ovirt-engine/isouploader.conf
+%{python_sitelib}/ovirt_iso_uploader/*.py*
+%{_bindir}/engine-iso-uploader
+%{_mandir}/man8/*
 
 %changelog
+* Tue Oct 2 2012 Alon Bar-Lev <alonbl@redhat.com>
+- Rewrite build
 * Thu Mar 8 2012 Keith Robertson <kroberts@redhat.com> - 1.0.0-0
 - Initial build
