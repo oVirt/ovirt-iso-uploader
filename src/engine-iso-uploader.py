@@ -6,19 +6,13 @@ from optparse import OptionParser, OptionGroup, SUPPRESS_HELP
 import subprocess
 import shlex
 import logging
-import locale
 import gettext
-import pprint
-import urllib
-import urllib2
-import base64
 import traceback
 import tempfile
 import shutil
 from pwd import getpwnam
 import getpass
 from ovirtsdk.api import API
-from ovirtsdk.xml import params
 from ovirtsdk.infrastructure.errors import RequestError, ConnectionError, NoCertificatesError
 
 
@@ -483,7 +477,7 @@ class ISOUploader(object):
             os.setegid(gid)
             os.seteuid(uid)
             return os.path.exists(file)
-        except Exception, e:
+        except Exception:
             raise Exception("unable to test the available space on %s" % dir)
         finally:
             os.seteuid(0)
@@ -526,7 +520,7 @@ class ISOUploader(object):
         logging.debug('Mount point size test command is (%s)' % cmd)
         try:
             dir_size,returncode = self.caller.call(cmd)
-        except Exception,e:
+        except Exception:
             pass
 
         if returncode == 0 and dir_size is not None:
@@ -551,7 +545,7 @@ class ISOUploader(object):
             os.setegid(gid)
             os.seteuid(uid)
             dir_stat = os.statvfs(dir)
-        except Exception, e:
+        except Exception:
             raise Exception("unable to test the available space on %s" % dir)
         finally:
             os.seteuid(0)
@@ -622,7 +616,7 @@ class ISOUploader(object):
         logging.debug('Rename file command is (%s)' % cmd)
         try:
             stdout,returncode = self.caller.call(cmd)
-        except Exception,e:
+        except Exception:
             raise Exception("unable to move file from %s to %s" % (src_file_name, dest_file_name))
 
     def remove_file_nfs(self, file_name, uid, gid):
@@ -654,7 +648,7 @@ class ISOUploader(object):
         logging.debug('Remove file command is (%s)' % cmd)
         try:
             stdout,returncode = self.caller.call(cmd)
-        except Exception,e:
+        except Exception:
             raise Exception("unable to remove %s" % file)
 
     def refresh_iso_domain(self, id):
@@ -762,7 +756,7 @@ class ISOUploader(object):
             cmd = self.format_nfs_command(address, path, tmpDir)
             try:
                 self.caller.call(cmd)
-                passwd = getpwnam(NFS_USER)
+                getpwnam(NFS_USER)
                 for file in self.configuration.files:
                     dest_dir = os.path.join(tmpDir,remote_path)
                     dest_file = os.path.join(dest_dir, os.path.basename(file))
@@ -803,7 +797,7 @@ class ISOUploader(object):
                         logging.error(_('%s exists on %s.  Either remove it or supply the --force option to overwrite it.')
                                       % (file,address))
 
-            except KeyError, k:
+            except KeyError:
                 ExitCodes.exit_code=ExitCodes.CRITICAL
                 logging.error(_("A user named %s with a UID and GID of %d must be defined on the system to mount the ISO storage domain on %s as Read/Write"
                                 % (NFS_USER,
