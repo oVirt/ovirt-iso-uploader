@@ -30,7 +30,8 @@ Group:		Virtualization/Management
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}
 BuildArch:	noarch
 Requires:	python
-Requires:	ovirt-engine-sdk
+Requires:	ovirt-engine-sdk >= 3.2.0.10-1
+BuildRequires:	gettext-devel
 BuildRequires:	python2-devel
 
 %description

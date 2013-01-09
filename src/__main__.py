@@ -440,12 +440,13 @@ class ISOUploader(object):
                    else "https://") + self.configuration.get("engine") + "/api"
 
             try:
+                # If "insecure" option was provided, use it during API creation
                 self.api = API(
                     url=url,
                     username=self.configuration.get("user"),
                     password=self.configuration.get("passwd"),
                     ca_file=self.configuration.get("cert_file"),
-                    insecure=self.configuration.get("insecure")
+                    validate_cert_chain=not self.configuration.get("insecure"),
                 )
 
                 pi = self.api.get_product_info()
