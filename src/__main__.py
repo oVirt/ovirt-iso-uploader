@@ -1304,7 +1304,7 @@ multiple files (separated by spaces) and wildcarding."""
         conf = Configuration(parser)
 
         isoup = ISOUploader(conf)
-    except  KeyboardInterrupt, k:
+    except KeyboardInterrupt, k:
         print _("Exiting on user cancel.")
     except Exception, e:
         logging.error("%s" % e)
