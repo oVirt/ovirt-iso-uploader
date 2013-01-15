@@ -422,7 +422,7 @@ class ISOUploader(object):
                     url=url,
                     username=self.configuration.get("user"),
                     password=self.configuration.get("passwd"),
-                    ca_file=self.configuration.get("engine_ca"),
+                    ca_file=self.configuration.get("cert_file"),
                     insecure=self.configuration.get("insecure")
                 )
 
@@ -1160,7 +1160,7 @@ multiple files (separated by spaces) and wildcarding."""
     )
 
     parser.add_option(
-        "", "--engine-ca", dest="engine_ca",
+        "", "--cert-file", dest="cert_file",
         help=(
             "The CA certificate used to validate the engine. "
             "(default=/etc/pki/ovirt-engine/ca.pem)"
