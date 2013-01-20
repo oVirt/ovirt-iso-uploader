@@ -27,23 +27,27 @@ MAINTAINERCLEANFILES = \
 	$(srcdir)/config.guess $(srcdir)/config.sub \
 	$(srcdir)/config.rpath \
 	$(srcdir)/ABOUT-NLS \
-	$(srcdir)/aclocal.m4
-
+	$(srcdir)/aclocal.m4 \
+	$(NULL)
 
 EXTRA_DIST = \
-	.gitignore
-	m4/.gitignore
-	po/.gitignore
+	.gitignore \
+	m4/.gitignore \
+	po/.gitignore \
+	$(NULL)
 
 SUBDIRS = \
 	po \
-	src
+	src \
+	$(NULL)
 
 dist_noinst_DATA = \
-	ovirt-iso-uploader.spec
+	ovirt-iso-uploader.spec \
+	$(NULL)
 
 dist_noinst_SCRIPTS = \
-	autogen.sh
+	autogen.sh \
+	$(NULL)
 
 TMPREPOS = tmp.repos
 srpm:	dist

@@ -43,7 +43,9 @@ ISO Uploader tool for oVirt Engine
 
 %build
 %configure \
-	--docdir="%{_docdir}/%{package_name}-%{version}"
+	--docdir="%{_docdir}/%{package_name}-%{version}" \
+	--disable-python-syntax-check
+
 make %{?_smp_mflags}
 
 %install
