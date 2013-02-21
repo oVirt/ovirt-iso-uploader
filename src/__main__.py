@@ -1108,7 +1108,7 @@ if __name__ == '__main__':
     usage_string = "\n".join(
         (
             "%prog [options] list ",
-            "       %prog [options] upload [file].[file]...[file]"
+            "       %prog [options] upload FILE [FILE]...[FILE]"
         )
     )
 
