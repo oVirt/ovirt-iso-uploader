@@ -858,23 +858,24 @@ class ISOUploader(object):
             raise Exception(
                 _("either iso-domain or nfs-server must be provided")
             )
-
+        print _("Uploading, please wait...")
         # We need to create the full path to the images directory
         if conf.get('ssh_user'):
-            for file in self.configuration.files:
+            for filename in self.configuration.files:
+                logging.info( _("Start uploading %s "), filename )
                 try:
-                    logging.debug('file (%s)' % file)
+                    logging.debug('file (%s)' % filename)
                     dest_dir = os.path.join(path, remote_path)
                     dest_file = os.path.join(
                         dest_dir,
-                        os.path.basename(file)
+                        os.path.basename(filename)
                     )
                     user = self.format_ssh_user(self.configuration["ssh_user"])
                     retVal = self.exists_ssh(user, address, dest_file)
                     if conf.get('force') or not retVal:
                         temp_dest_file = os.path.join(
                             dest_dir,
-                            '.%s' % os.path.basename(file)
+                            '.%s' % os.path.basename(filename)
                         )
                         if retVal:
                             self.remove_file_ssh(user, address, dest_file)
@@ -882,12 +883,12 @@ class ISOUploader(object):
                             user,
                             address,
                             path,
-                            file
+                            filename
                         )
                         if (long(dir_size) > long(file_size)):
                             cmd = self.format_ssh_command(SCP)
                             cmd += ' %s %s%s:%s' % (
-                                file,
+                                filename,
                                 user,
                                 address,
                                 temp_dest_file
@@ -931,7 +932,7 @@ class ISOUploader(object):
                             # Force oVirt Engine to refresh the list of files
                             # in the ISO domain
                             self.refresh_iso_domain(id)
-                            logging.info(_("%s uploaded successfully"), file)
+                            logging.info(_("%s uploaded successfully"), filename)
                         else:
                             logging.error(
                                 _(
@@ -940,7 +941,7 @@ class ISOUploader(object):
                                 ),
                                 path,
                                 dir_size,
-                                file,
+                                filename,
                                 file_size
                             )
                     else:
@@ -950,7 +951,7 @@ class ISOUploader(object):
                                 '%s exists on %s.  Either remove it or supply '
                                 'the --force option to overwrite it.'
                             ),
-                            file,
+                            filename,
                             address
                         )
                 except Exception, e:
@@ -960,7 +961,7 @@ class ISOUploader(object):
                                 'Unable to copy %s to ISO storage '
                                 'domain on %s.'
                             ),
-                            file,
+                            filename,
                             self.configuration.get('iso_domain')
                         )
                         logging.error(
@@ -975,14 +976,15 @@ class ISOUploader(object):
             try:
                 self.caller.call(cmd)
                 getpwnam(NFS_USER)
-                for file in self.configuration.files:
+                for filename in self.configuration.files:
+                    logging.info( _("Start uploading %s "), filename )
                     dest_dir = os.path.join(
                         tmpDir,
                         remote_path
                     )
                     dest_file = os.path.join(
                         dest_dir,
-                        os.path.basename(file)
+                        os.path.basename(filename)
                     )
                     retVal = self.exists_nfs(
                         dest_file,
@@ -1001,17 +1003,17 @@ class ISOUploader(object):
                                 )
                             (dir_size, file_size) = self.space_test_nfs(
                                 dest_dir,
-                                file,
+                                filename,
                                 NUMERIC_VDSM_ID,
                                 NUMERIC_VDSM_ID
                             )
                             if (dir_size > file_size):
                                 temp_dest_file = os.path.join(
                                     dest_dir,
-                                    '.%s' % os.path.basename(file)
+                                    '.%s' % os.path.basename(filename)
                                 )
                                 if self.copy_file(
-                                    file,
+                                    filename,
                                     temp_dest_file,
                                     NUMERIC_VDSM_ID,
                                     NUMERIC_VDSM_ID
@@ -1028,7 +1030,7 @@ class ISOUploader(object):
                                         self.refresh_iso_domain(id)
                                     logging.info(
                                         _("%s uploaded successfully"),
-                                        file
+                                        filename
                                     )
                             else:
                                 logging.error(
@@ -1038,7 +1040,7 @@ class ISOUploader(object):
                                     ),
                                     path,
                                     dir_size,
-                                    file,
+                                    filename,
                                     file_size
                                 )
                         except Exception, e:
@@ -1048,7 +1050,7 @@ class ISOUploader(object):
                                     'Unable to copy %s to ISO storage '
                                     'domain on %s.'
                                 ),
-                                file,
+                                filename,
                                 (
                                     self.configuration.get('iso_domain')
                                     if (
@@ -1069,7 +1071,7 @@ class ISOUploader(object):
                                 '%s exists on %s.  Either remove it or '
                                 'supply the --force option to overwrite it.'
                             ),
-                            file,
+                            filename,
                             address
                         )
 
