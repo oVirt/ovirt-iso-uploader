@@ -103,6 +103,7 @@ class Caller(object):
     """
     Utility class for forking programs.
     """
+
     def __init__(self, configuration):
         self.configuration = configuration
 
@@ -112,7 +113,9 @@ class Caller(object):
         return shlex.split(_cmd)
 
     def call(self, cmds):
-        """Uses the configuration to fork a subprocess and run cmds"""
+        """
+        Uses the configuration to fork a subprocess and run cmds
+        """
         _cmds = self.prep(cmds)
         logging.debug("_cmds(%s)" % _cmds)
         proc = subprocess.Popen(
@@ -133,9 +136,11 @@ class Caller(object):
 
 
 class Configuration(dict):
-    """This class is a dictionary subclass that knows how to read and """
-    """handle our configuration. Resolution order is defaults -> """
-    """configuration file -> command line options."""
+    """
+    This class is a dictionary subclass that knows how to read and
+    handle our configuration. Resolution order is defaults ->
+    configuration file -> command line options.
+    """
 
     class SkipException(Exception):
         "This exception is raised when the user aborts a prompt"
@@ -862,7 +867,7 @@ class ISOUploader(object):
         # We need to create the full path to the images directory
         if conf.get('ssh_user'):
             for filename in self.configuration.files:
-                logging.info( _("Start uploading %s "), filename )
+                logging.info(_("Start uploading %s "), filename)
                 try:
                     logging.debug('file (%s)' % filename)
                     dest_dir = os.path.join(path, remote_path)
@@ -932,7 +937,9 @@ class ISOUploader(object):
                             # Force oVirt Engine to refresh the list of files
                             # in the ISO domain
                             self.refresh_iso_domain(id)
-                            logging.info(_("%s uploaded successfully"), filename)
+                            logging.info(
+                                _("%s uploaded successfully"), filename
+                            )
                         else:
                             logging.error(
                                 _(
@@ -955,19 +962,19 @@ class ISOUploader(object):
                             address
                         )
                 except Exception, e:
-                        ExitCodes.exit_code = ExitCodes.UPLOAD_ERR
-                        logging.error(
-                            _(
-                                'Unable to copy %s to ISO storage '
-                                'domain on %s.'
-                            ),
-                            filename,
-                            self.configuration.get('iso_domain')
-                        )
-                        logging.error(
-                            _('Error message is "%s"'),
-                            str(e).strip()
-                        )
+                    ExitCodes.exit_code = ExitCodes.UPLOAD_ERR
+                    logging.error(
+                        _(
+                            'Unable to copy %s to ISO storage '
+                            'domain on %s.'
+                        ),
+                        filename,
+                        self.configuration.get('iso_domain')
+                    )
+                    logging.error(
+                        _('Error message is "%s"'),
+                        str(e).strip()
+                    )
         else:
             # NFS support.
             tmpDir = tempfile.mkdtemp()
@@ -977,7 +984,7 @@ class ISOUploader(object):
                 self.caller.call(cmd)
                 getpwnam(NFS_USER)
                 for filename in self.configuration.files:
-                    logging.info( _("Start uploading %s "), filename )
+                    logging.info(_("Start uploading %s "), filename)
                     dest_dir = os.path.join(
                         tmpDir,
                         remote_path
@@ -1180,7 +1187,8 @@ multiple files (separated by spaces) and wildcarding."""
         default=False
     )
 
-    parser.add_option("", "--nossl", dest="nossl",
+    parser.add_option(
+        "", "--nossl", dest="nossl",
         help="Do not use ssl to connect to the engine.",
         action="store_true",
         default=False
