@@ -584,7 +584,7 @@ class ISOUploader(object):
         if "ssh_port" in self.configuration:
             cmd += port_flag + " %(ssh_port)s " % self.configuration
         if "key_file" in self.configuration:
-            cmd += "-i %s " % self.configuration
+            cmd += "-i %(key_file)s " % self.configuration
         return cmd
 
     def format_nfs_command(self, address, export, dir):
