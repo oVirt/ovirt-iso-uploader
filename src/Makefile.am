@@ -38,6 +38,11 @@ dist_engineconfig_DATA = \
 	isouploader.conf \
 	$(NULL)
 
+confddir=$(engineconfigdir)/isouploader.conf.d
+dist_confd_DATA = \
+	.keep \
+	$(NULL)
+
 all-local: \
 	python-syntax-check \
 	$(NULL)

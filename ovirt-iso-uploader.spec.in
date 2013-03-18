@@ -55,6 +55,7 @@ make %{?_smp_mflags} install DESTDIR="%{buildroot}"
 %doc AUTHORS
 %doc COPYING
 %config(noreplace) %{_sysconfdir}/ovirt-engine/isouploader.conf
+%{_sysconfdir}/ovirt-engine/isouploader.conf.d/.keep
 %{python_sitelib}/ovirt_iso_uploader/*.py*
 %{_bindir}/engine-iso-uploader
 %{_mandir}/man8/*
