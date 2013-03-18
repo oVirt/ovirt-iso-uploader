@@ -210,10 +210,14 @@ class Configuration(dict):
         """Loads the user-supplied config file or the system default.
            If the user supplies a bad filename we will stop."""
 
+        conf_file = DEFAULT_CONFIGURATION_FILE
+
         if self.options and getattr(self.options, "conf_file"):
-            if os.path.isfile(self.options.conf_file):
-                self.from_file(self.options.conf_file)
-            else:
+            conf_file = self.options.conf_file
+            if (
+                not os.path.exists(conf_file) and
+                not os.path.exists("%s.d" % conf_file)
+            ):
                 raise Exception(
                     (
                         "The specified configuration file "
@@ -221,8 +225,7 @@ class Configuration(dict):
                     ) % self.options.conf_file
                 )
 
-        elif os.path.isfile(DEFAULT_CONFIGURATION_FILE):
-            self.from_file(DEFAULT_CONFIGURATION_FILE)
+        self.from_file(conf_file)
 
     def from_option_groups(self, options, parser):
         for optGrp in parser.option_groups:
@@ -238,10 +241,22 @@ class Configuration(dict):
                 if opt_value is not None:
                     self[option.dest] = opt_value
 
-    def from_file(self, filename):
+    def from_file(self, configFile):
         import ConfigParser
+        import glob
+
+        configs = []
+        configDir = '%s.d' % configFile
+        if os.path.exists(configFile):
+            configs.append(configFile)
+        configs += sorted(
+            glob.glob(
+                os.path.join(configDir, "*.conf")
+            )
+        )
+
         cp = ConfigParser.ConfigParser()
-        cp.read(filename)
+        cp.read(configs)
 
         # we want the items from the ISOUploader section only
         try:
