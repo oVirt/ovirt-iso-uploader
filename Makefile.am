@@ -37,7 +37,6 @@ EXTRA_DIST = \
 	$(NULL)
 
 SUBDIRS = \
-	intl \
 	po \
 	src \
 	$(NULL)
