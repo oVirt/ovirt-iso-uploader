@@ -59,7 +59,7 @@ CHOWN = '/bin/chown'
 CHMOD = '/bin/chmod'
 TEST = '/usr/bin/test'
 DEFAULT_CONFIGURATION_FILE = '/etc/ovirt-engine/isouploader.conf'
-DEFAULT_LOG_FILE = '/var/log/ovirt-engine/engine-iso-uploader.log'
+DEFAULT_LOG_FILE = '/var/log/ovirt-engine/ovirt-iso-uploader.log'
 PERMS_MASK = '640'
 PYTHON = '/usr/bin/python'
 

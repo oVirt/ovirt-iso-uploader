@@ -31,6 +31,7 @@ dist_ovirtisouploaderlib_PYTHON = \
 	$(NULL)
 
 dist_man_MANS = \
+	ovirt-iso-uploader.8 \
 	engine-iso-uploader.8 \
 	$(NULL)
 
@@ -54,8 +55,11 @@ clean-local: \
 install-data-hook:
 	$(MKDIR_P) "$(DESTDIR)$(bindir)"
 	chmod a+x "$(DESTDIR)$(ovirtisouploaderlibdir)/__main__.py"
+	rm -f "$(DESTDIR)$(bindir)/ovirt-iso-uploader"
 	rm -f "$(DESTDIR)$(bindir)/engine-iso-uploader"
-	$(LN_S) "$(ovirtisouploaderlibdir)/__main__.py" "$(DESTDIR)$(bindir)/engine-iso-uploader"
+	$(LN_S) "$(ovirtisouploaderlibdir)/__main__.py" "$(DESTDIR)$(bindir)/ovirt-iso-uploader"
+	$(LN_S) ovirt-iso-uploader "$(DESTDIR)$(bindir)/engine-iso-uploader"
 
 uninstall-hook:
+	rm -f "$(DESTDIR)$(bindir)/ovirt-iso-uploader"
 	rm -f "$(DESTDIR)$(bindir)/engine-iso-uploader"
