@@ -243,6 +243,25 @@ class Configuration(dict):
         cp = ConfigParser.ConfigParser()
         cp.read(filename)
 
+        #backward compatibility with existing setup
+        if cp.has_option('ISOUploader', 'rhevm'):
+            if not cp.has_option('ISOUploader', 'engine'):
+                cp.set(
+                    'ISOUploader',
+                    'engine',
+                    cp.get('ISOUploader', 'rhevm')
+                )
+                logging.warning(
+                    _(
+                        'A deprecated configuration key has been found. '
+                        'Please replace the deprecated key, \'rhevm\', '
+                        'with the new one \'engine\' in {configFiles}'
+                    ).format(
+                        configFiles=filename
+                    )
+                )
+            cp.remove_option('ISOUploader', 'rhevm')
+
         # we want the items from the ISOUploader section only
         try:
             opts = [
