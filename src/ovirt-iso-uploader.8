@@ -10,7 +10,7 @@ ovirt\-iso\-uploader \- oVirt Enterprise Virtualization Engine Manager ISO Uploa
 .PP
 The \fBovirt\-iso\-uploader\fP can be used to list the names of ISO storage domains (not the images stored in those domains) and upload files to storage domains. The upload operation supports multiple files (separated by spaces) and wildcarding.\&
 .PP
-The \fBovirt\-iso\-uploader\fP will, by default, attempt to interact with the REST API.  This command typically gets the oVirt engine manager's hostname and port number (engine=) and user name (user=) from the \fB/etc/engine/logcollector.conf\fP file. Alternatively, you can provide the user name and password from the command line. The user name and password are authenticated by the authentication service associated with the oVirt engine manager.  Currently, a special local account (admin), Red Hat IPA server, and Microsoft Active Directory server is supported for this task.
+The \fBovirt\-iso\-uploader\fP will, by default, attempt to interact with the REST API.  This command typically gets the oVirt engine manager's hostname and port number (engine=) and user name (user=) from the configuration file(s). Alternatively, you can provide the user name and password from the command line. The user name and password are authenticated by the authentication service associated with the oVirt engine manager.  Currently, a special local account (admin), Red Hat IPA server, and Microsoft Active Directory server is supported for this task.
 .PP
 The reason \fBovirt\-iso\-uploader\fP needs to interact with the REST API is so it can discover metadata (the IP address and path information) for the NFS server hosting the ISO storage domain. The only way to bypass the REST API (and not require a user name and password) is if you provide the fully qualified address and path to the NFS server. This can be useful if JBoss is off\-line or if you know the full path to the domain on the NFS server. However, keep in mind that the path names are not intuitive. You cannot bypass the REST API if you are using SSH to copy files to the server.\&
 .PP
@@ -26,8 +26,8 @@ Show the help message and exit.\&
 Intended to be used with \fBupload\fP operations to reduce console output (default=False).\&
 .IP "\fB\-\-log\-file=PATH\fP"
 Path to ovirt\-iso\-uploader log file (default=/var/log/ovirt\-iso\-uploader.log).\&
-.IP "\fB\-\-config\-file=PATH\fP"
-Path to the configuration file (default=/etc/engine/isouploader.conf).\&
+.IP "\fB\-\-conf\-file=PATH\fP"
+Path to the configuration file (default=/etc/ovirt-engine/isouploader.conf).\&
 .IP "\fB\-v, \-\-verbose\fP"
 Display verbose output.\&
 .IP "\fB\-f, \-\-force\fP"
@@ -95,7 +95,7 @@ If you know the full path to the NFS upload directory, you may specify that. Not
     --nfs-server=192.168.0.1:/virt/iso/a0b9ecf0-6bed-4a64-8d2f-85b7dea3ab31/images/11111111-1111-1111-1111-111111111111 \\
     upload  /tmp/files/*.vfd
 .SH "CONFIGURATION FILE"
-For configuration information, \fBovirt\-iso\-uploader\fP always first pulls in any options set in the \fB/etc/engine/isouploader.conf\fP configuration file. By default, all options are commented out. Any options you set in that file can later be overridden from the \fBovirt\-iso\-uploader\fP command line. To set defaults for any of the options described in this man page, uncomment the option lines you want in this file and add the desired values. Here are examples of a few lines from that file:\&
+For configuration information, \fBovirt\-iso\-uploader\fP always first pulls in any options set in the configuration files \fB/etc/ovirt-engine/isouploader.conf\fP and \fB/etc/ovirt-engine/isouploader.conf.d/*.conf\fP. By default, all options are commented out. Any options you set in that file can later be overridden from the \fBovirt\-iso\-uploader\fP command line. To set defaults for any of the options described in this man page, uncomment the option lines you want in this file and add the desired values. Here are examples of a few lines from that file:\&
 .PP
 [ISOUploader]\&
 .br
