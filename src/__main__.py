@@ -731,7 +731,7 @@ class ISOUploader(object):
         """
         retVal = True
         logging.debug("euid(%s) egid(%s)" % (os.geteuid(), os.getegid()))
-        umask_save = os.umask(0137)  # Set to 660
+        umask_save = os.umask(0137)  # Set to 640
         try:
             src = open(src_file_name, 'r')
             os.setegid(gid)
@@ -758,6 +758,7 @@ class ISOUploader(object):
         NFS mount.
         """
         logging.debug("euid(%s) egid(%s)" % (os.geteuid(), os.getegid()))
+        umask_save = os.umask(0137)  # Set to 640
         try:
             os.setegid(gid)
             os.seteuid(uid)
@@ -768,6 +769,7 @@ class ISOUploader(object):
         finally:
             os.seteuid(0)
             os.setegid(0)
+            os.umask(umask_save)
 
     def rename_file_ssh(self, user, address, src_file_name, dest_file_name):
         """
