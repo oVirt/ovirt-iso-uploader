@@ -35,7 +35,7 @@ from ovirtsdk.infrastructure.errors import NoCertificatesError
 
 
 APP_NAME = "ovirt-iso-uploader"
-VERSION = "1.0.0"
+VERSION = "3.4.0"
 STREAM_LOG_FORMAT = '%(levelname)s: %(message)s'
 FILE_LOG_FORMAT = (
     '%(asctime)s::%(levelname)s::%(module)s::%(lineno)d::%(name)s:: '
