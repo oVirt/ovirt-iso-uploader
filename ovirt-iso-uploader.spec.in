@@ -31,6 +31,7 @@ BuildArch:	noarch
 Requires:	python
 Requires:	ovirt-engine-sdk >= 3.2.0.10-1
 BuildRequires:	gettext-devel
+Requires:	logrotate
 BuildRequires:	python2-devel
 
 %description
@@ -53,7 +54,9 @@ make %{?_smp_mflags} install DESTDIR="%{buildroot}"
 %files
 %doc AUTHORS
 %doc COPYING
+%dir %{_localstatedir}/log/ovirt-engine/%{package_name}
 %config(noreplace) %{_sysconfdir}/ovirt-engine/isouploader.conf
+%config(noreplace) %{_sysconfdir}/logrotate.d/%{package_name}
 %{python_sitelib}/ovirt_iso_uploader/*.py*
 %{_bindir}/engine-iso-uploader
 %{_mandir}/man8/*

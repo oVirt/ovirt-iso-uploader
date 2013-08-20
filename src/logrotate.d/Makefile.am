@@ -15,61 +15,25 @@
 # limitations under the License.
 #
 
-include $(top_srcdir)/build/python.inc
-
 MAINTAINERCLEANFILES = \
 	$(srcdir)/Makefile.in \
 	$(NULL)
 
 EXTRA_DIST = \
-	config.py.in \
-	isodomain.xml \
+	ovirt-iso-uploader.in \
 	$(NULL)
 
 CLEANFILES = \
-	config.py \
+	ovirt-iso-uploader \
 	$(NULL)
 
-SUBDIRS = \
-	logrotate.d \
+nodist_logrotate_DATA= \
+	ovirt-iso-uploader \
 	$(NULL)
 
-dist_ovirtisouploaderlib_PYTHON = \
-	__init__.py \
-	__main__.py \
-	$(NULL)
+logrotatedir=$(sysconfdir)/logrotate.d
 
-nodist_ovirtisouploaderlib_PYTHON = \
-	config.py \
-	$(NULL)
-
-dist_man_MANS = \
-	engine-iso-uploader.8 \
-	$(NULL)
-
-dist_engineconfig_DATA = \
-	isouploader.conf \
-	$(NULL)
-
-config.py: config.py.in
+ovirt-iso-uploader: ovirt-iso-uploader.in
 	$(SED) \
 	-e 's|@localstatedir[@]|$(localstatedir)|g' \
 	-e 's|@PACKAGE_NAME[@]|$(PACKAGE_NAME)|g' < $< > $@
-
-all-local: \
-	python-syntax-check \
-	$(NULL)
-
-clean-local: \
-	python-clean \
-	$(NULL)
-
-install-data-hook:
-	$(MKDIR_P) "$(DESTDIR)$(bindir)"
-	$(MKDIR_P) "$(DESTDIR)$(localstatedir)/log/ovirt-engine/$(PACKAGE_NAME)"
-	chmod a+x "$(DESTDIR)$(ovirtisouploaderlibdir)/__main__.py"
-	rm -f "$(DESTDIR)$(bindir)/engine-iso-uploader"
-	$(LN_S) "$(ovirtisouploaderlibdir)/__main__.py" "$(DESTDIR)$(bindir)/engine-iso-uploader"
-
-uninstall-hook:
-	rm -f "$(DESTDIR)$(bindir)/engine-iso-uploader"
