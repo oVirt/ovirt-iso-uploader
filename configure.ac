@@ -75,6 +75,7 @@ AC_CONFIG_FILES([
 	Makefile
 	ovirt-iso-uploader.spec
 	src/Makefile
+	src/logrotate.d/Makefile
 	po/Makefile.in
 ])
 AC_OUTPUT

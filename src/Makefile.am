@@ -22,12 +22,25 @@ MAINTAINERCLEANFILES = \
 	$(NULL)
 
 EXTRA_DIST = \
+	config.py.in \
 	isodomain.xml \
+	$(NULL)
+
+CLEANFILES = \
+	config.py \
+	$(NULL)
+
+SUBDIRS = \
+	logrotate.d \
 	$(NULL)
 
 dist_ovirtisouploaderlib_PYTHON = \
 	__init__.py \
 	__main__.py \
+	$(NULL)
+
+nodist_ovirtisouploaderlib_PYTHON = \
+	config.py \
 	$(NULL)
 
 dist_man_MANS = \
@@ -44,6 +57,11 @@ dist_confd_DATA = \
 	.keep \
 	$(NULL)
 
+config.py: config.py.in
+	$(SED) \
+	-e 's|@localstatedir[@]|$(localstatedir)|g' \
+	-e 's|@PACKAGE_NAME[@]|$(PACKAGE_NAME)|g' < $< > $@
+
 all-local: \
 	python-syntax-check \
 	$(NULL)
@@ -54,6 +72,7 @@ clean-local: \
 
 install-data-hook:
 	$(MKDIR_P) "$(DESTDIR)$(bindir)"
+	$(MKDIR_P) "$(DESTDIR)$(localstatedir)/log/ovirt-engine/$(PACKAGE_NAME)"
 	chmod a+x "$(DESTDIR)$(ovirtisouploaderlibdir)/__main__.py"
 	rm -f "$(DESTDIR)$(bindir)/ovirt-iso-uploader"
 	rm -f "$(DESTDIR)$(bindir)/engine-iso-uploader"

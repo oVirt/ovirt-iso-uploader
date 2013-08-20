@@ -1,0 +1,14 @@
+"""
+Configuration for @PACKAGE_NAME@
+"""
+
+import os
+
+PACKAGE_NAME = '@PACKAGE_NAME@'
+DEFAULT_LOG_DIR =  os.path.join(
+    '@localstatedir@',
+    'log',
+    'ovirt-engine',
+    PACKAGE_NAME,
+)
+LOG_PREFIX = PACKAGE_NAME
