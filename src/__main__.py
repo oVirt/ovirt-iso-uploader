@@ -25,6 +25,7 @@ import logging
 import gettext
 import traceback
 import tempfile
+import time
 import shutil
 from pwd import getpwnam
 import getpass
@@ -33,15 +34,10 @@ from ovirtsdk.infrastructure.errors import RequestError
 from ovirtsdk.infrastructure.errors import ConnectionError
 from ovirtsdk.infrastructure.errors import NoCertificatesError
 
+from ovirt_iso_uploader import config
 
 APP_NAME = "ovirt-iso-uploader"
 VERSION = "3.3.0"
-STREAM_LOG_FORMAT = '%(levelname)s: %(message)s'
-FILE_LOG_FORMAT = (
-    '%(asctime)s::%(levelname)s::%(module)s::%(lineno)d::%(name)s:: '
-    '%(message)s'
-)
-FILE_LOG_DSTMP = '%Y-%m-%d %H:%M:%S'
 DEFAULT_IMAGES_DIR = 'images/11111111-1111-1111-1111-111111111111'
 NFS_MOUNT_OPTS = '-t nfs -o rw,sync,soft'
 NFS_UMOUNT_OPTS = '-t nfs -f '
@@ -59,9 +55,26 @@ CHOWN = '/bin/chown'
 CHMOD = '/bin/chmod'
 TEST = '/usr/bin/test'
 DEFAULT_CONFIGURATION_FILE = '/etc/ovirt-engine/isouploader.conf'
-DEFAULT_LOG_FILE = '/var/log/ovirt-engine/ovirt-iso-uploader.log'
 PERMS_MASK = '640'
 PYTHON = '/usr/bin/python'
+
+STREAM_LOG_FORMAT = '%(levelname)s: %(message)s'
+FILE_LOG_FORMAT = (
+    '%(asctime)s::'
+    '%(levelname)s::'
+    '%(module)s::'
+    '%(lineno)d::'
+    '%(name)s::'
+    ' %(message)s'
+)
+FILE_LOG_DSTMP = '%Y-%m-%d %H:%M:%S'
+DEFAULT_LOG_FILE = os.path.join(
+    config.DEFAULT_LOG_DIR,
+    '{prefix}-{timestamp}.log'.format(
+        prefix=config.LOG_PREFIX,
+        timestamp=time.strftime('%Y%m%d%H%M%S'),
+    )
+)
 
 
 def multilog(logger, msg):

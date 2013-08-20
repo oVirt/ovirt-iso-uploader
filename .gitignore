@@ -13,8 +13,8 @@ config.guess
 config.rpath
 config.sub
 ABOUT-NLS
-
 tmp.*
 *.pyc
 *.pyo
 *~
+src/logrotate.d/ovirt-iso-uploader
