@@ -790,14 +790,39 @@ class ISOUploader(object):
         try:
             os.setegid(gid)
             os.seteuid(uid)
+            logging.debug(
+                'Renaming {src} to {dest}'.format(
+                    src=src_file_name,
+                    dest=dest_file_name,
+                )
+            )
             os.rename(src_file_name, dest_file_name)
+            success = True
         except Exception, e:
-            logging.error(_("Problem renaming %s to %s.  Message: %s" %
-                          (src_file_name, dest_file_name, e)))
+            success = False
+            logging.error(
+                _(
+                    'Problem renaming {src} to {dst}. Message: {msg}'
+                ).format(
+                    src=src_file_name,
+                    dst=dest_file_name,
+                    msg=e,
+                )
+            )
+            logging.error(
+                _(
+                    'Please ensure to have permissions for renaming files '
+                    'inside {directory}'
+                ).format(
+                    directory=os.path.dirname(dest_file_name)
+                )
+            )
+            ExitCodes.exit_code = ExitCodes.UPLOAD_ERR
         finally:
             os.seteuid(0)
             os.setegid(0)
             os.umask(umask_save)
+        return success
 
     def rename_file_ssh(self, user, address, src_file_name, dest_file_name):
         """
@@ -883,6 +908,7 @@ class ISOUploader(object):
         """
         Method to upload a designated file to an ISO storage domain.
         """
+        #TODO: refactor this method
         remote_path = ''
         id = None
         # Did the user give us enough info to do our work?
@@ -1075,20 +1101,24 @@ class ISOUploader(object):
                                     NUMERIC_VDSM_ID,
                                     NUMERIC_VDSM_ID
                                 ):
-                                    self.rename_file_nfs(
+                                    if self.rename_file_nfs(
                                         temp_dest_file,
                                         dest_file,
                                         NUMERIC_VDSM_ID,
                                         NUMERIC_VDSM_ID
-                                    )
-                                    # Force oVirt Engine to refresh the list
-                                    # of files in the ISO domain
-                                    if id is not None:
-                                        self.refresh_iso_domain(id)
-                                    logging.info(
-                                        _("%s uploaded successfully"),
-                                        filename
-                                    )
+                                    ):
+                                        if id is not None:
+                                            # Force oVirt Engine to refresh
+                                            #the list
+                                            # of files in the ISO domain
+                                            self.refresh_iso_domain(id)
+                                        logging.info(
+                                            _(
+                                                '{f} uploaded successfully'
+                                            ).format(
+                                                f=filename,
+                                            )
+                                        )
                             else:
                                 logging.error(
                                     _(
