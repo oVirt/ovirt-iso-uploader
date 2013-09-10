@@ -76,7 +76,7 @@ install-data-hook:
 	chmod a+x "$(DESTDIR)$(ovirtisouploaderlibdir)/__main__.py"
 	rm -f "$(DESTDIR)$(bindir)/ovirt-iso-uploader"
 	rm -f "$(DESTDIR)$(bindir)/engine-iso-uploader"
-	$(LN_S) "$(ovirtisouploaderlibdir)/__main__.py" "$(DESTDIR)$(bindir)/ovirt-iso-uploader"
+	$(LN_S) "$(DESTDIR)$(ovirtisouploaderlibdir)/__main__.py" "$(DESTDIR)$(bindir)/ovirt-iso-uploader"
 	$(LN_S) ovirt-iso-uploader "$(DESTDIR)$(bindir)/engine-iso-uploader"
 
 uninstall-hook:
