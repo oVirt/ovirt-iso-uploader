@@ -288,6 +288,14 @@ class Configuration(dict):
                     cp.get('ISOUploader', 'rhevm')
                 )
             cp.remove_option('ISOUploader', 'rhevm')
+        if cp.has_option('ISOUploader', 'engine-ca'):
+            if not cp.has_option('ISOUploader', 'cert-file'):
+                cp.set(
+                    'ISOUploader',
+                    'cert-file',
+                    cp.get('ISOUploader', 'engine-ca')
+                )
+            cp.remove_option('ISOUploader', 'engine-ca')
 
         # we want the items from the ISOUploader section only
         try:
