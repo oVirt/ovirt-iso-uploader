@@ -55,9 +55,9 @@ make %{?_smp_mflags} install DESTDIR="%{buildroot}"
 %doc AUTHORS
 %doc COPYING
 %dir %{_localstatedir}/log/ovirt-engine/%{package_name}
-%config(noreplace) %{_sysconfdir}/ovirt-engine/isouploader.conf
+%dir %{_sysconfdir}/ovirt-engine/isouploader.conf.d
+ %attr(0640, -, -) %config(noreplace) %{_sysconfdir}/ovirt-engine/isouploader.conf
 %config(noreplace) %{_sysconfdir}/logrotate.d/%{package_name}
-%{_sysconfdir}/ovirt-engine/isouploader.conf.d/.keep
 %{python_sitelib}/ovirt_iso_uploader/*.py*
 %{_bindir}/ovirt-iso-uploader
 %{_bindir}/engine-iso-uploader

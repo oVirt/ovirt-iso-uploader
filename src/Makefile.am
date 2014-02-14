@@ -53,9 +53,6 @@ dist_engineconfig_DATA = \
 	$(NULL)
 
 confddir=$(engineconfigdir)/isouploader.conf.d
-dist_confd_DATA = \
-	.keep \
-	$(NULL)
 
 config.py: config.py.in
 	$(SED) \
@@ -71,9 +68,11 @@ clean-local: \
 	$(NULL)
 
 install-data-hook:
+	$(MKDIR_P) "$(DESTDIR)$(confddir)"
 	$(MKDIR_P) "$(DESTDIR)$(bindir)"
 	$(MKDIR_P) "$(DESTDIR)$(localstatedir)/log/ovirt-engine/$(PACKAGE_NAME)"
 	chmod a+x "$(DESTDIR)$(ovirtisouploaderlibdir)/__main__.py"
+	chmod 640 "$(DESTDIR)$(engineconfigdir)/isouploader.conf"
 	rm -f "$(DESTDIR)$(bindir)/ovirt-iso-uploader"
 	rm -f "$(DESTDIR)$(bindir)/engine-iso-uploader"
 	$(LN_S) "$(ovirtisouploaderlibdir)/__main__.py" "$(DESTDIR)$(bindir)/ovirt-iso-uploader"
