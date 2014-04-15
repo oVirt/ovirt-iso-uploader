@@ -58,7 +58,7 @@ DEFAULT_CONFIGURATION_FILE = '/etc/ovirt-engine/isouploader.conf'
 PERMS_MASK = '640'
 PYTHON = '/usr/bin/python'
 
-#{Logging system
+# {Logging system
 STREAM_LOG_FORMAT = '%(levelname)s: %(message)s'
 FILE_LOG_FORMAT = (
     '%(asctime)s::'
@@ -87,7 +87,7 @@ class NotAnError(logging.Filter):
 def multilog(logger, msg):
     for line in str(msg).splitlines():
         logger(line)
-#}
+# }
 
 
 def get_from_prompt(msg, default=None, prompter=raw_input):
@@ -116,7 +116,7 @@ class Commands():
     """
     LIST = 'list'
     UPLOAD = 'upload'
-    #DELETE = 'delete'
+    # DELETE = 'delete'
     ARY = [LIST, UPLOAD]
 
 
@@ -279,7 +279,7 @@ class Configuration(dict):
         cp = ConfigParser.ConfigParser()
         cp.read(configs)
 
-        #backward compatibility with existing setup
+        # backward compatibility with existing setup
         if cp.has_option('ISOUploader', 'rhevm'):
             if not cp.has_option('ISOUploader', 'engine'):
                 cp.set(
@@ -384,12 +384,12 @@ class Configuration(dict):
 
     def __log_to_stream(self, level):
         fmt = logging.Formatter(STREAM_LOG_FORMAT)
-        #Errors should always be there, on stderr
+        # Errors should always be there, on stderr
         h_err = logging.StreamHandler(sys.stderr)
         h_err.setLevel(logging.ERROR)
         h_err.setFormatter(fmt)
         logging.root.addHandler(h_err)
-        #Other logs should go to stdout
+        # Other logs should go to stdout
         sh = logging.StreamHandler(sys.stdout)
         sh.setLevel(level)
         sh.setFormatter(fmt)
@@ -920,7 +920,7 @@ class ISOUploader(object):
         """
         Method to upload a designated file to an ISO storage domain.
         """
-        #TODO: refactor this method
+        # TODO: refactor this method
         remote_path = ''
         id = None
         # Did the user give us enough info to do our work?
@@ -1121,7 +1121,7 @@ class ISOUploader(object):
                                     ):
                                         if id is not None:
                                             # Force oVirt Engine to refresh
-                                            #the list
+                                            # the list
                                             # of files in the ISO domain
                                             self.refresh_iso_domain(id)
                                         logging.info(
@@ -1422,7 +1422,6 @@ multiple files (separated by spaces) and wildcarding."""
         if conf and (conf.get("verbose")):
             logging.debug(_("Configuration:"))
             logging.debug(_("command: %s") % conf.command)
-            #multilog(logging.debug, pprint.pformat(conf))
             multilog(logging.debug, traceback.format_exc())
         sys.exit(ExitCodes.CRITICAL)
 
