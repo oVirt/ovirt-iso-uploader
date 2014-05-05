@@ -617,10 +617,13 @@ class ISOUploader(object):
                     _("The %s storage domain supplied is not of type ISO") %
                     isodomain
                 )
-            id = sd.get_id()
+            sd_uuid = sd.get_id()
             storage = sd.get_storage()
             if storage is not None:
-                address = storage.get_address()
+                domain_type = storage.get_type()
+                address = 'localhost'
+                if domain_type not in ('localfs', ):
+                    address = storage.get_address()
                 path = storage.get_path()
             else:
                 raise Exception(
@@ -629,8 +632,10 @@ class ISOUploader(object):
                         "the %s ISO domain."
                     ) % isodomain
                 )
-            logging.debug('id=%s address=%s path=%s' % (id, address, path))
-            return (id, address, path)
+            logging.debug(
+                'id=%s address=%s path=%s' % (sd_uuid, address, path)
+            )
+            return (sd_uuid, domain_type, address, path)
         else:
             raise Exception(
                 _("An ISO storage domain with a name of %s was not found.") %
@@ -940,9 +945,10 @@ class ISOUploader(object):
             )
         elif self.configuration.get('iso_domain'):
             # Discover the hostname and path from the ISO domain.
-            (id, address, path) = self.get_host_and_path_from_ISO_domain(
-                self.configuration.get('iso_domain')
-            )
+            (id, domain_type, address, path) = \
+                self.get_host_and_path_from_ISO_domain(
+                    self.configuration.get('iso_domain')
+                )
             remote_path = os.path.join(id, DEFAULT_IMAGES_DIR)
         elif self.configuration.get('nfs_server'):
             mnt = self.configuration.get('nfs_server')
@@ -1063,6 +1069,14 @@ class ISOUploader(object):
                         _('Error message is "%s"'),
                         str(e).strip()
                     )
+        elif domain_type in ('localfs', ):
+            ExitCodes.exit_code = ExitCodes.UPLOAD_ERR
+            logging.error(
+                _(
+                    'Upload to a local storage domain is supported only '
+                    'through SSH'
+                ),
+            )
         else:
             # NFS support.
             tmpDir = tempfile.mkdtemp()
