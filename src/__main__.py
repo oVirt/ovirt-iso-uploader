@@ -120,6 +120,13 @@ class Commands():
     ARY = [LIST, UPLOAD]
 
 
+class NEISODomain(RuntimeError):
+    """"
+    This exception is raised when the user inputs a not existing ISO domain
+    """
+    pass
+
+
 class Caller(object):
     """
     Utility class for forking programs.
@@ -637,7 +644,7 @@ class ISOUploader(object):
             )
             return (sd_uuid, domain_type, address, path)
         else:
-            raise Exception(
+            raise NEISODomain(
                 _("An ISO storage domain with a name of %s was not found.") %
                 isodomain
             )
@@ -1430,7 +1437,11 @@ multiple files (separated by spaces) and wildcarding."""
         isoup = ISOUploader(conf)
     except KeyboardInterrupt, k:
         print _("Exiting on user cancel.")
+    except NEISODomain, e:
+        logging.error("%s" % e)
+        sys.exit(ExitCodes.UPLOAD_ERR)
     except Exception, e:
+        # FIXME: add better exceptions handling
         logging.error("%s" % e)
         logging.info(_("Use the -h option to see usage."))
         if conf and (conf.get("verbose")):
