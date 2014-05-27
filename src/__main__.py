@@ -497,7 +497,7 @@ class ISOUploader(object):
                     username=self.configuration.get("user"),
                     password=self.configuration.get("passwd"),
                     ca_file=self.configuration.get("cert_file"),
-                    validate_cert_chain=not self.configuration.get("insecure"),
+                    insecure=self.configuration.get("insecure"),
                 )
 
                 pi = self.api.get_product_info()
