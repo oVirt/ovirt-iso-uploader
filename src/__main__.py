@@ -487,8 +487,7 @@ class ISOUploader(object):
                     "the oVirt Engine REST API."
                 )
 
-            url = ("http://" if self.configuration.get("nossl")
-                   else "https://") + self.configuration.get("engine") + "/api"
+            url = "https://" + self.configuration.get("engine") + "/api"
 
             try:
                 # If "insecure" option was provided, use it during API creation
@@ -1296,13 +1295,6 @@ multiple files (separated by spaces) and wildcarding."""
     parser.add_option(
         "", "--insecure", dest="insecure",
         help="Do not make an attempt to verify the engine.",
-        action="store_true",
-        default=False
-    )
-
-    parser.add_option(
-        "", "--nossl", dest="nossl",
-        help="Do not use ssl to connect to the engine.",
         action="store_true",
         default=False
     )
