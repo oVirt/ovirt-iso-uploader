@@ -17,6 +17,9 @@
 
 %global		package_version @PACKAGE_VERSION@
 %global		package_name @PACKAGE_NAME@
+# Required users and groups
+%global		vdsm_user @VDSMUSER@
+%global		vdsm_group @VDSMGROUP@
 
 Summary:	ISO Uploader for oVirt Engine
 Name:		%{package_name}
@@ -29,6 +32,7 @@ Source:		http://resources.ovirt.org/pub/ovirt-master-snapshot/src/%{package_name
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}
 BuildArch:	noarch
 Requires:	python
+Requires(pre):	shadow-utils
 Requires:	ovirt-engine-sdk-python >= 3.6.0.0
 Requires:	logrotate
 BuildRequires:	gettext
@@ -46,6 +50,11 @@ ISO Uploader tool for oVirt Engine
 	--disable-python-syntax-check
 
 make %{?_smp_mflags}
+
+%pre
+getent passwd %{vdsm_user} >/dev/null || \
+	LC_ALL=C useradd -r -u 36 -g %{vdsm_group} -d / \
+		-s /sbin/nologin -c "Node Virtualization Manager" %{vdsm_user}
 
 %install
 rm -rf "%{buildroot}"
