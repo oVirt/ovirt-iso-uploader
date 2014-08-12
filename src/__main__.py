@@ -951,10 +951,14 @@ class ISOUploader(object):
             )
         elif self.configuration.get('iso_domain'):
             # Discover the hostname and path from the ISO domain.
-            (id, domain_type, address, path) = \
-                self.get_host_and_path_from_ISO_domain(
-                    self.configuration.get('iso_domain')
+            iso_domain_data = self.get_host_and_path_from_ISO_domain(
+                self.configuration.get('iso_domain')
+            )
+            if iso_domain_data is None:
+                raise Exception(
+                    _('Unable to get ISO domain data')
                 )
+            (id, domain_type, address, path) = iso_domain_data
             remote_path = os.path.join(id, DEFAULT_IMAGES_DIR)
         elif self.configuration.get('nfs_server'):
             mnt = self.configuration.get('nfs_server')
