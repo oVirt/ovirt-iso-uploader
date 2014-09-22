@@ -37,7 +37,7 @@ from ovirtsdk.infrastructure.errors import NoCertificatesError
 from ovirt_iso_uploader import config
 
 APP_NAME = "ovirt-iso-uploader"
-VERSION = "3.5.0"
+VERSION = "3.5.1"
 DEFAULT_IMAGES_DIR = 'images/11111111-1111-1111-1111-111111111111'
 NFS_MOUNT_OPTS = '-t nfs -o rw,sync,soft'
 NFS_UMOUNT_OPTS = '-t nfs -f '
