@@ -519,36 +519,54 @@ class ISOUploader(object):
                         vrm
                     )
                 else:
-                    logging.error(_("Unable to connect to REST API."))
+                    logging.error(
+                        _("Unable to connect to REST API at {url}").format(
+                            url=url,
+                        )
+                    )
                     return False
-            except RequestError, re:
+            except RequestError as re:
                 logging.error(
-                    _("Unable to connect to REST API.  Reason: %s"),
-                    re.reason
+                    _(
+                        "Unable to connect to REST API at {url}\n"
+                        "Reason: {reason}"
+                    ).format(
+                        url=url,
+                        reason=re.reason,
+                    ),
                 )
                 return False
             except ConnectionError:
                 logging.error(
                     _(
-                        "Problem connecting to the REST API.  Is the "
-                        "service available and does the CA certificate "
+                        "Problem connecting to the REST API at {url}\n"
+                        "Is the service available and does the CA certificate "
                         "exist?"
+                    ).format(
+                        url=url,
                     )
                 )
                 return False
             except NoCertificatesError:
                 logging.error(
                     _(
-                        "Problem connecting to the REST API.  The CA is "
-                        "invalid.  To override use the \'insecure\' "
+                        "Problem connecting to the REST API at {url}\n"
+                        "The CA is invalid. To override use the \'insecure\' "
                         "option."
+                    ).format(
+                        url=url,
                     )
                 )
                 return False
-            except Exception, e:
+            except Exception as e:
                 logging.error(
-                    _("Unable to connect to REST API.  Message: %s"),
-                    e
+                    _(
+                        "Unable to connect to REST API at {url}\n"
+                        "Message: {e}"
+                    ).format(
+                        url=url,
+                        e=e,
+                    )
                 )
                 return False
         return True
