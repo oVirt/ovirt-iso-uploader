@@ -959,6 +959,7 @@ class ISOUploader(object):
         # TODO: refactor this method
         remote_path = ''
         id = None
+        domain_type = None
         # Did the user give us enough info to do our work?
         if (
             self.configuration.get('iso_domain') and
