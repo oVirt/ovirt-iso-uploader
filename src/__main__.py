@@ -797,6 +797,56 @@ class ISOUploader(object):
         )
         return (dir_size, file_size)
 
+    def copyfileobj_sparse_progress(
+            self,
+            fsrc,
+            fdst,
+            length=16*1024,
+            make_sparse=True,
+            bar_length=40,
+            quiet=True,
+    ):
+        """
+        copy data from file-like object fsrc to file-like object fdst
+        like shutils.copyfileobj does but supporting also
+        sparse file. It can print also a progress bar
+        """
+        i = 0
+        fsrc.seek(0, 2)  # move the cursor to the end of the file
+        end_val = fsrc.tell()
+        fsrc.seek(0, 0)  # move back the cursor to the start of the file
+        old_ipercent = -1
+        while 1:
+            buf = fsrc.read(length)
+            if not buf:
+                break
+            if make_sparse and buf == '\0'*len(buf):
+                fdst.seek(len(buf), os.SEEK_CUR)
+            else:
+                fdst.write(buf)
+            i += length
+            percent = float(i) / end_val
+            ipercent = int(round(percent * 100))
+            if not quiet and ipercent > old_ipercent:
+                old_ipercent = ipercent
+                hashes = '#' * int(round(percent * bar_length))
+                spaces = ' ' * (bar_length - len(hashes))
+                sys.stdout.write(
+                    _(
+                        "\rUploading: [{h}] {n}%".format(
+                            h=hashes + spaces,
+                            n=ipercent,
+                        )
+                    )
+                )
+                sys.stdout.flush()
+        if make_sparse:
+            # Make sure the file ends where it should, even if padded out.
+            fdst.truncate()
+        if not quiet:
+            sys.stdout.write('\n')
+            sys.stdout.flush()
+
     def copy_file(self, src_file_name, dest_file_name, uid, gid):
         """
         Copy a file from source to dest via file handles.  The destination
@@ -813,7 +863,11 @@ class ISOUploader(object):
             os.setegid(gid)
             os.seteuid(uid)
             dest = open(dest_file_name, 'w')
-            shutil.copyfileobj(src, dest)
+            self.copyfileobj_sparse_progress(
+                fsrc=src,
+                fdst=dest,
+                quiet=self.configuration.options.quiet,
+            )
         except Exception, e:
             retVal = False
             logging.error(_("Problem copying %s to %s.  Message: %s" %
