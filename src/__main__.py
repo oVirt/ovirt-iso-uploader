@@ -825,7 +825,7 @@ class ISOUploader(object):
             else:
                 fdst.write(buf)
             i += length
-            percent = float(i) / end_val
+            percent = min(float(i) / end_val, 1.0)
             ipercent = int(round(percent * 100))
             if not quiet and ipercent > old_ipercent:
                 old_ipercent = ipercent
