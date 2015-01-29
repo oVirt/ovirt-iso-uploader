@@ -652,10 +652,21 @@ class ISOUploader(object):
             storage = sd.get_storage()
             if storage is not None:
                 domain_type = storage.get_type()
-                address = 'localhost'
-                if domain_type not in ('localfs', ):
+                address = ''
+                if domain_type == 'localfs':
+                    hosts = self.api.hosts.list(query="storage=%s" % isodomain)
+                    for host in hosts:
+                        address = host.get_address()
+                else:
                     address = storage.get_address()
                 path = storage.get_path()
+                if len(address) == 0:
+                    raise Exception(
+                        _(
+                            "An host was not found for "
+                            "the %s local ISO domain."
+                        ) % isodomain
+                    )
             else:
                 raise Exception(
                     _(
