@@ -530,11 +530,11 @@ class ISOUploader(object):
                     "Unable to connect to REST API at {url}\n"
                 )
                 REQ_ERRORS = {
-                    401:UNABLE_TO_CONNECT +  _(
+                    401: UNABLE_TO_CONNECT + _(
                         "Host returned a 401 Unauthorized error.\n"
                         "Please check the provided username and password."
                         ),
-                    503:UNABLE_TO_CONNECT + _(
+                    503: UNABLE_TO_CONNECT + _(
                         "Host returned a 503 Service Unavailable error.\n"
                         "Please ensure the engine is running and "
                         "the webUI is accessible."
