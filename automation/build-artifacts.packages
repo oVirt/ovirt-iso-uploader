@@ -1,0 +1,7 @@
+autoconf
+automake
+gettext-devel
+git
+ovirt-engine-sdk-python
+python2-devel
+yum-utils
