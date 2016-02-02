@@ -487,7 +487,9 @@ class ISOUploader(object):
                     "the oVirt Engine REST API."
                 )
 
-            url = "https://" + self.configuration.get("engine") + "/ovirt-engine/api"
+            url = "https://{engine}/ovirt-engine/api".format(
+                engine=self.configuration.get("engine"),
+            )
 
             try:
                 # If "insecure" option was provided, use it during API creation
