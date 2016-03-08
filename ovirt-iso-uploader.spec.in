@@ -30,7 +30,7 @@ BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}
 BuildArch:	noarch
 Requires:	python
 Requires(pre):	shadow-utils
-Requires:	ovirt-engine-sdk-python >= 4.0.0.0
+Requires:	ovirt-engine-sdk-python >= 3.6.3.0
 Requires:	logrotate
 BuildRequires:	gettext
 BuildRequires:	python2-devel
