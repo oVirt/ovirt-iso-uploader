@@ -27,11 +27,7 @@ import time
 import shutil
 from pwd import getpwnam
 import getpass
-from ovirtsdk.api import API
-from ovirtsdk.infrastructure.errors import RequestError
-from ovirtsdk.infrastructure.errors import ConnectionError
-from ovirtsdk.infrastructure.errors import NoCertificatesError
-
+import ovirtsdk4
 from ovirt_iso_uploader import config
 
 APP_NAME = "ovirt-iso-uploader"
@@ -490,32 +486,24 @@ class ISOUploader(object):
             )
 
             try:
-                # If "insecure" option was provided, use it during API creation
-                if self.configuration.get("insecure"):
-                    self.api = API(
-                        url=url,
-                        username=self.configuration.get("user"),
-                        password=self.configuration.get("passwd"),
-                        insecure=True,
-                    )
-                else:
-                    self.api = API(
-                        url=url,
-                        username=self.configuration.get("user"),
-                        password=self.configuration.get("passwd"),
-                        ca_file=self.configuration.get("cert_file"),
-                    )
-
-                pi = self.api.get_product_info()
+                self.api = ovirtsdk4.Connection(
+                    url=url,
+                    username=self.configuration.get("user"),
+                    password=self.configuration.get("passwd"),
+                    ca_file=self.configuration.get("cert_file"),
+                    insecure=bool(self.configuration.get("insecure")),
+                )
+                svc = self.api.system_service().get()
+                pi = svc.product_info
                 if pi is not None:
                     vrm = '%s.%s.%s' % (
-                        pi.get_version().get_major(),
-                        pi.get_version().get_minor(),
-                        pi.get_version().get_revision()
+                        pi.version.major,
+                        pi.version.minor,
+                        pi.version.revision,
                     )
                     logging.debug(
                         "API Vendor(%s)\tAPI Version(%s)",
-                        pi.get_vendor(),
+                        pi.vendor,
                         vrm
                     )
                 else:
@@ -525,54 +513,16 @@ class ISOUploader(object):
                         )
                     )
                     return False
-            except RequestError as re:
-                UNABLE_TO_CONNECT = _(
-                    "Unable to connect to REST API at {url}\n"
-                )
-                REQ_ERRORS = {
-                    401: UNABLE_TO_CONNECT + _(
-                        "Host returned a 401 Unauthorized error.\n"
-                        "Please check the provided username and password."
-                        ),
-                    503: UNABLE_TO_CONNECT + _(
-                        "Host returned a 503 Service Unavailable error.\n"
-                        "Please ensure the engine is running and "
-                        "the webUI is accessible."
-                        ),
-                    }
-                GENERIC_REQ_ERROR = UNABLE_TO_CONNECT + _(
-                    "Reason: {reason}\n"
-                    "Status: {status}"
-                )
-
+            except ovirtsdk4.Error as e:
+                # this is the only exception raised by SDK :(
                 logging.error(
-                    REQ_ERRORS.get(re.status, GENERIC_REQ_ERROR).format(
+                    _(
+                        "Unable to connect to REST API at {url} due to SDK "
+                        "error\nMessage: {e}"
+                    ).format(
                         url=url,
-                        reason=re.reason,
-                        status=re.status,
+                        e=e,
                     ),
-                )
-                return False
-            except ConnectionError as e:
-                logging.error(
-                    _(
-                        "Problem connecting to the REST API at {url}\n"
-                        "{ex}"
-                    ).format(
-                        url=url,
-                        ex=str(e.args[0]),
-                    )
-                )
-                return False
-            except NoCertificatesError:
-                logging.error(
-                    _(
-                        "Problem connecting to the REST API at {url}\n"
-                        "The CA is invalid. To override use the \'insecure\' "
-                        "option."
-                    ).format(
-                        url=url,
-                    )
                 )
                 return False
             except Exception as e:
@@ -598,47 +548,35 @@ class ISOUploader(object):
         if not self._initialize_api():
             sys.exit(ExitCodes.CRITICAL)
 
-        dcAry = self.api.datacenters.list()
-        if dcAry is not None:
+        svc = self.api.system_service()
+        domainAry = svc.storage_domains_service().list()
+        if domainAry is not None:
             isoAry = []
-            for dc in dcAry:
-                dcName = dc.get_name()
-                logging.debug("Found a DC named(%s)" % dcName)
-                domainAry = dc.storagedomains.list()
-                if domainAry is not None:
-                    for domain in domainAry:
-                        if domain.get_type() == 'iso':
-                            status = domain.get_status()
-                            if status is not None:
-                                isoAry.append(
-                                    [
-                                        domain.get_name(),
-                                        dcName,
-                                        status.get_state()
-                                    ]
-                                )
-                            else:
-                                logging.debug(
-                                    "the storage domain didn't "
-                                    "have a status element."
-                                )
-                else:
-                    logging.debug(
-                        _("DC(%s) does not have a storage domain."),
-                        dcName
-                    )
-
+            for domain in domainAry:
+                if domain.type.value == 'iso':
+                    status = domain.external_status
+                    if status is not None:
+                        isoAry.append(
+                            [
+                                domain.name,
+                                status.value
+                            ]
+                        )
+                    else:
+                        logging.debug(
+                            "the storage domain didn't "
+                            "have a status element."
+                        )
             if len(isoAry) > 0:
                 isoAry.sort(key=get_name)
-                fmt = "%-25s | %-25s | %s"
+                fmt = "%-25s | %s"
                 print fmt % (
                     _("ISO Storage Domain Name"),
-                    _("Datacenter"),
                     _("ISO Domain Status")
                 )
                 print "\n".join(
-                    fmt % (name, dcName, status)
-                    for name, dcName, status in isoAry
+                    fmt % (name, status)
+                    for name, status in isoAry
                 )
             else:
                 ExitCodes.exit_code = ExitCodes.LIST_ISO_ERR
@@ -646,7 +584,7 @@ class ISOUploader(object):
         else:
             ExitCodes.exit_code = ExitCodes.LIST_ISO_ERR
             logging.error(
-                _("There are no datacenters with ISO storage domains.")
+                _("There are no storage domains available.")
             )
 
     def get_host_and_path_from_ISO_domain(self, isodomain):
@@ -658,25 +596,31 @@ class ISOUploader(object):
         """
         if not self._initialize_api():
             sys.exit(ExitCodes.CRITICAL)
-        sd = self.api.storagedomains.get(isodomain)
+        svc = self.api.system_service()
+        sd = None
+        for domain in svc.storage_domains_service().list():
+            if domain.name == isodomain:
+                sd = domain
         if sd is not None:
-            if sd.get_type() != 'iso':
+            if sd.type.value != 'iso':
                 raise Exception(
                     _("The %s storage domain supplied is not of type ISO") %
                     isodomain
                 )
-            sd_uuid = sd.get_id()
-            storage = sd.get_storage()
+            sd_uuid = sd.id
+            storage = sd.storage
             if storage is not None:
-                domain_type = storage.get_type()
+                domain_type = storage.type.value
                 address = ''
                 if domain_type == 'localfs':
-                    hosts = self.api.hosts.list(query="storage=%s" % isodomain)
+                    hosts = svc.hosts_service().list(
+                        search="storage=%s" % isodomain
+                    )
                     for host in hosts:
-                        address = host.get_address()
+                        address = host.address
                 else:
-                    address = storage.get_address()
-                path = storage.get_path()
+                    address = storage.address
+                path = storage.path
                 if len(address) == 0:
                     raise Exception(
                         _(
@@ -1019,9 +963,10 @@ class ISOUploader(object):
         if not self._initialize_api():
             sys.exit(ExitCodes.CRITICAL)
         try:
-            sd = self.api.storagedomains.get(id=id)
-            if sd is not None and sd.files is not None:
-                sd.files.list()
+            svc = self.api.system_service()
+            sd = svc.storage_domains_service().service(id)
+            if sd is not None:
+                sd.files_service().list()
         except Exception, e:
             logging.warn(
                 _(
