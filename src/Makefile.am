@@ -34,6 +34,7 @@ SUBDIRS = \
 dist_ovirtisouploaderlib_PYTHON = \
 	__init__.py \
 	__main__.py \
+	glfs_api.py \
 	$(NULL)
 
 nodist_ovirtisouploaderlib_PYTHON = \

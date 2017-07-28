@@ -33,6 +33,7 @@ Requires(pre):	shadow-utils
 Requires:	python-ovirt-engine-sdk4 >= 4.0.0
 Requires:	logrotate
 Requires:	nfs-utils
+Requires:	glusterfs-api
 BuildRequires:	gettext
 BuildRequires:	python2-devel
 
