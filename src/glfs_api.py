@@ -62,6 +62,9 @@ class GlfsApi:
         ctypes.c_int, ctypes.c_void_p)(('glfs_fini', _lib))
 
     def __init__(self, address, path):
+        # New libgfapi expects volume name without prefix
+        if path.startswith("/"):
+            path = path[1:]
         fs = self._glfs_new(path)
         ret = self._glfs_set_volfile_server(fs, "tcp",
                                             address, self.GLUSTER_DEFAULT_PORT)
