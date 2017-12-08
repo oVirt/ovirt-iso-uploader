@@ -1027,6 +1027,10 @@ class ISOUploader(object):
             raise Exception(
                 _("either iso-domain or nfs-server must be provided")
             )
+        if domain_type in ('glusterfs',) and conf.get('ssh_user'):
+            raise Exception(
+                _("ssh upload is not compatible with glusterfs iso domain")
+            )
         print _("Uploading, please wait...")
         # We need to create the full path to the images directory
         if conf.get('ssh_user'):
