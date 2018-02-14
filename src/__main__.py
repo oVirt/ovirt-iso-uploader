@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-# Copyright 2011-2016 Red Hat, Inc. and/or its affiliates.
+# Copyright 2011-2018 Red Hat, Inc. and/or its affiliates.
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ from ovirt_iso_uploader import config
 from glfs_api import GlfsApi
 
 APP_NAME = "ovirt-iso-uploader"
-VERSION = "4.1.1"
+VERSION = "4.2.0"
 DEFAULT_IMAGES_DIR = 'images/11111111-1111-1111-1111-111111111111'
 NFS_MOUNT_OPTS = '-t nfs -o rw,sync,soft'
 NFS_UMOUNT_OPTS = '-t nfs -f '

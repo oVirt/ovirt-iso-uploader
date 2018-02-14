@@ -1,4 +1,4 @@
-dnl Copyright 2011-2017 Red Hat, Inc. and/or its affiliates.
+dnl Copyright 2011-2018 Red Hat, Inc. and/or its affiliates.
 dnl
 dnl  Licensed under the Apache License, Version 2.0 (the "License");
 dnl  you may not use this file except in compliance with the License.
@@ -15,14 +15,14 @@ dnl  limitations under the License.
 AC_PREREQ(2.60)
 
 define([VERSION_MAJOR], [4])
-define([VERSION_MINOR], [1])
-define([VERSION_FIX], [1])
+define([VERSION_MINOR], [2])
+define([VERSION_FIX], [0])
 define([VERSION_NUMBER], VERSION_MAJOR[.]VERSION_MINOR[.]VERSION_FIX)
-define([VERSION_SUFFIX], [_master])
+define([VERSION_SUFFIX], [])
 
 AC_INIT([ovirt-iso-uploader], VERSION_NUMBER[]VERSION_SUFFIX)
 PACKAGE_RPM_VERSION="VERSION_NUMBER"
-PACKAGE_RPM_RELEASE="0.0.$(echo VERSION_SUFFIX | sed 's/^_//')"
+PACKAGE_RPM_RELEASE="1"
 AC_SUBST([PACKAGE_RPM_VERSION])
 AC_SUBST([PACKAGE_RPM_RELEASE])
 AC_SUBST([VDSMUSER], [vdsm])
