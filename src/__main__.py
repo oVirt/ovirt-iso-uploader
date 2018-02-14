@@ -32,7 +32,7 @@ from ovirt_iso_uploader import config
 from glfs_api import GlfsApi
 
 APP_NAME = "ovirt-iso-uploader"
-VERSION = "4.2.0"
+VERSION = "4.2.1"
 DEFAULT_IMAGES_DIR = 'images/11111111-1111-1111-1111-111111111111'
 NFS_MOUNT_OPTS = '-t nfs -o rw,sync,soft'
 NFS_UMOUNT_OPTS = '-t nfs -f '
