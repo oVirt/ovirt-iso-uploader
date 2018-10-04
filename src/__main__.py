@@ -29,7 +29,7 @@ from pwd import getpwnam
 import getpass
 import ovirtsdk4
 from ovirt_iso_uploader import config
-from glfs_api import GlfsApi
+from .glfs_api import GlfsApi
 
 APP_NAME = "ovirt-iso-uploader"
 VERSION = "4.2.1"
@@ -51,7 +51,16 @@ CHMOD = '/bin/chmod'
 TEST = '/usr/bin/test'
 DEFAULT_CONFIGURATION_FILE = '/etc/ovirt-engine/isouploader.conf'
 PERMS_MASK = '640'
-PYTHON = '/usr/bin/python'
+
+if sys.version_info[0] >= 3:
+    PYTHON = '/usr/bin/python3'
+else:
+    PYTHON = '/usr/bin/python'
+
+try:
+    raw_input
+except NameError as e:
+    raw_input = input
 
 # {Logging system
 STREAM_LOG_FORMAT = '%(levelname)s: %(message)s'
@@ -89,7 +98,7 @@ def get_from_prompt(msg, default=None, prompter=raw_input):
     try:
         return prompter(msg)
     except EOFError:
-        print
+        print()
         return default
 
 
@@ -131,7 +140,7 @@ class Caller(object):
         self.configuration = configuration
 
     def prep(self, cmd):
-        _cmd = cmd % self.configuration
+        _cmd = cmd.format(self.configuration)
         logging.debug(_cmd)
         return shlex.split(_cmd)
 
@@ -140,7 +149,7 @@ class Caller(object):
         Uses the configuration to fork a subprocess and run cmds
         """
         _cmds = self.prep(cmds)
-        logging.debug("_cmds(%s)" % _cmds)
+        logging.debug("_cmds({0})".format(_cmds))
         proc = subprocess.Popen(
             _cmds,
             stdout=subprocess.PIPE,
@@ -148,9 +157,9 @@ class Caller(object):
         )
         stdout, stderr = proc.communicate()
         returncode = proc.returncode
-        logging.debug("returncode(%s)" % returncode)
-        logging.debug("STDOUT(%s)" % stdout)
-        logging.debug("STDERR(%s)" % stderr)
+        logging.debug("returncode({0})".format(returncode))
+        logging.debug("STDOUT({0})".format(stdout))
+        logging.debug("STDERR({0})".format(stderr))
 
         if returncode == 0:
             return (stdout, returncode)
@@ -239,13 +248,15 @@ class Configuration(dict):
             conf_file = self.options.conf_file
             if (
                 not os.path.exists(conf_file) and
-                not os.path.exists("%s.d" % conf_file)
+                not os.path.exists("{0}.d".format(conf_file))
             ):
                 raise Exception(
                     (
                         "The specified configuration file "
-                        "does not exist.  File=(%s)"
-                    ) % self.options.conf_file
+                        "does not exist.  File={0}".format(
+                            self.options.conf_file
+                            )
+                    )
                 )
 
         self.from_file(conf_file)
@@ -265,11 +276,14 @@ class Configuration(dict):
                     self[option.dest] = opt_value
 
     def from_file(self, configFile):
-        import ConfigParser
+        try:
+            import configparser
+        except ImportError:
+            import ConfigParser as configparser
         import glob
 
         configs = []
-        configDir = '%s.d' % configFile
+        configDir = '{0}.d'.format(configFile)
         if os.path.exists(configFile):
             configs.append(configFile)
         configs += sorted(
@@ -278,7 +292,7 @@ class Configuration(dict):
             )
         )
 
-        cp = ConfigParser.ConfigParser()
+        cp = configparser.ConfigParser()
         cp.read(configs)
 
         # backward compatibility with existing setup
@@ -302,7 +316,7 @@ class Configuration(dict):
         # we want the items from the ISOUploader section only
         try:
             opts = [
-                "--%s=%s" % (k, v)
+                "--{0}={1}".format(k, v)
                 for k, v in cp.items("ISOUploader")
             ]
             (new_options, args) = self.parser.parse_args(
@@ -311,7 +325,7 @@ class Configuration(dict):
             )
             self.from_option_groups(new_options, self.parser)
             self.from_options(new_options, self.parser)
-        except ConfigParser.NoSectionError:
+        except configparser.NoSectionError:
             pass
 
     def from_args(self, args):
@@ -319,9 +333,9 @@ class Configuration(dict):
         if self.command not in Commands.ARY:
             raise Exception(
                 _(
-                    "%s is not a valid command.  Valid commands "
-                    "are '%s' or '%s'."
-                ) % (
+                    "{0} is not a valid command.  Valid commands "
+                    "are '{1}' or '{2}'."
+                ).format(
                     self.command,
                     Commands.LIST,
                     Commands.UPLOAD
@@ -330,8 +344,8 @@ class Configuration(dict):
 
         if self.command == Commands.UPLOAD:
             if len(args) <= 1:
-                raise Exception(_("Files must be supplied for %s commands" %
-                                  (Commands.UPLOAD)))
+                raise Exception(_("Files must be supplied for "
+                                  "{0} commands".format(Commands.UPLOAD)))
             for file in args[1:]:
                 self.files.append(file)
 
@@ -349,7 +363,7 @@ class Configuration(dict):
     #   why-cant-i-handle-a-keyboardinterrupt-in-python
     def _prompt(self, prompt_function, key, msg=None):
         value = get_from_prompt(
-            msg="Please provide the %s (CTRL+D to abort): " % msg,
+            msg="Please provide the {0} (CTRL+D to abort): ".format(msg),
             prompter=prompt_function
         )
         if value:
@@ -370,8 +384,10 @@ class Configuration(dict):
     def __ensure_path_to_file(self, file_):
         dir_ = os.path.dirname(file_)
         if not os.path.exists(dir_):
-            logging.info("%s does not exists. It will be created." % dir_)
-            os.makedirs(dir_, 0755)
+            logging.info(
+                "{0} does not exists. It will be created.".format(dir_)
+                )
+            os.makedirs(dir_, 0o755)
 
     def __log_to_file(self, file_, level):
         try:
@@ -381,8 +397,8 @@ class Configuration(dict):
             hdlr.setFormatter(fmt)
             logging.root.addHandler(hdlr)
             logging.root.setLevel(level)
-        except Exception, e:
-            logging.error("Could not configure file logging: %s" % e)
+        except Exception as e:
+            logging.error("Could not configure file logging: {0}".format(e))
 
     def __log_to_stream(self, level):
         fmt = logging.Formatter(STREAM_LOG_FORMAT)
@@ -476,9 +492,9 @@ class ISOUploader(object):
                         "passwd",
                         msg=(
                             _(
-                                "REST API password for the %s oVirt "
+                                "REST API password for the {0} oVirt "
                                 "Engine user"
-                            ) % self.configuration.get("user")
+                            ).format(self.configuration.get("user"))
                         )
                     )
             except Configuration.SkipException:
@@ -503,15 +519,14 @@ class ISOUploader(object):
                 svc = self.api.system_service().get()
                 pi = svc.product_info
                 if pi is not None:
-                    vrm = '%s.%s.%s' % (
+                    vrm = '{0}.{1}.{2}'.format(
                         pi.version.major,
                         pi.version.minor,
                         pi.version.revision,
                     )
                     logging.debug(
-                        "API Vendor(%s)\tAPI Version(%s)",
-                        pi.vendor,
-                        vrm
+                        "API Vendor({0})\tAPI Version({1})".format(
+                            pi.vendor, vrm)
                     )
                 else:
                     logging.error(
@@ -576,14 +591,17 @@ class ISOUploader(object):
                         )
             if len(isoAry) > 0:
                 isoAry.sort(key=get_name)
-                fmt = "%-25s | %s"
-                print fmt % (
-                    _("ISO Storage Domain Name"),
-                    _("ISO Domain Status")
+                fmt = "{:<25s} | {:s}"
+                print(
+                    fmt.format(
+                        _("ISO Storage Domain Name"),
+                        _("ISO Domain Status")
+                    )
                 )
-                print "\n".join(
-                    fmt % (name, status)
-                    for name, status in isoAry
+                print(
+                    "\n".join(
+                        fmt.format(name, status) for name, status in isoAry
+                    )
                 )
             else:
                 ExitCodes.exit_code = ExitCodes.LIST_ISO_ERR
@@ -611,8 +629,10 @@ class ISOUploader(object):
         if sd is not None:
             if sd.type.value != 'iso':
                 raise Exception(
-                    _("The %s storage domain supplied is not of type ISO") %
-                    isodomain
+                    _(
+                        "The {0} storage domain supplied"
+                        "is not of type ISO"
+                    ).format(isodomain)
                 )
             sd_uuid = sd.id
             storage = sd.storage
@@ -621,7 +641,7 @@ class ISOUploader(object):
                 address = ''
                 if domain_type == 'localfs':
                     hosts = svc.hosts_service().list(
-                        search="storage=%s" % isodomain
+                        search="storage={0}".format(isodomain)
                     )
                     for host in hosts:
                         address = host.address
@@ -632,44 +652,56 @@ class ISOUploader(object):
                     raise Exception(
                         _(
                             "An host was not found for "
-                            "the %s local ISO domain."
-                        ) % isodomain
+                            "the {0} local ISO domain."
+                        ).format(isodomain)
                     )
             else:
                 raise Exception(
                     _(
                         "A storage element was not found for "
-                        "the %s ISO domain."
-                    ) % isodomain
+                        "the {0} ISO domain."
+                    ).format(isodomain)
                 )
             logging.debug(
-                'id=%s address=%s path=%s' % (sd_uuid, address, path)
+                'id={sd_uuid} address={address} path={path}'.format(
+                    sd_uuid=sd_uuid,
+                    address=address,
+                    path=path
+                    )
             )
             return (sd_uuid, domain_type, address, path)
         else:
             raise NEISODomain(
-                _("An ISO storage domain with a name of %s was not found.") %
-                isodomain
+                _(
+                    "An ISO storage domain with"
+                    "a name of {0} was not found."
+                ).format(isodomain)
             )
 
     def format_ssh_user(self, ssh_user):
         if ssh_user and not ssh_user.endswith("@"):
-            return "%s@" % ssh_user
+            return "{0}@".format(ssh_user)
         else:
             return ssh_user or ""
 
     def format_ssh_command(self, cmd=SSH):
-        cmd = "%s " % cmd
+        cmd = "{0}".format(cmd)
         port_flag = "-p" if cmd.startswith(SSH) else "-P"
         if "ssh_port" in self.configuration:
-            cmd += port_flag + " %(ssh_port)s " % self.configuration
+            cmd += port_flag + "{0[ssh_port]}".format(self.configuration)
         if "key_file" in self.configuration:
-            cmd += "-i %(key_file)s " % self.configuration
+            cmd += "-i {0[key_file]} ".format(self.configuration)
         return cmd
 
     def format_nfs_command(self, address, export, dir):
-        cmd = '%s %s %s:%s %s' % (MOUNT, NFS_MOUNT_OPTS, address, export, dir)
-        logging.debug('NFS mount command (%s)' % cmd)
+        cmd = '{mount} {nfs_mount_opts} {address}:{export} {dir}'.format(
+            mount=MOUNT,
+            nfs_mount_opts=NFS_MOUNT_OPTS,
+            address=address,
+            export=export,
+            dir=dir
+            )
+        logging.debug('NFS mount command ({0})'.format(cmd))
         return cmd
 
     def exists_nfs(self, file, uid, gid):
@@ -682,7 +714,10 @@ class ISOUploader(object):
             os.seteuid(uid)
             return os.path.exists(file)
         except Exception:
-            raise Exception("unable to test the available space on %s" % dir)
+            raise Exception(
+                "unable to test the available"
+                "space on {0}".format(dir)
+                )
         finally:
             os.seteuid(0)
             os.setegid(0)
@@ -695,12 +730,17 @@ class ISOUploader(object):
         """
 
         cmd = self.format_ssh_command()
-        cmd += ' %s%s "%s -e %s"' % (user, address, TEST, file)
+        cmd += ' {user}{address} "{test} -e {file}"'.format(
+            user=user,
+            address=address,
+            test=TEST,
+            file=file
+            )
         logging.debug(cmd)
         returncode = 1
         try:
             stdout, returncode = self.caller.call(cmd)
-        except:
+        except Exception:
             pass
 
         if returncode == 0:
@@ -720,10 +760,16 @@ class ISOUploader(object):
         returncode = 1
         cmd = self.format_ssh_command()
         cmd += (
-            """ %s%s "%s -c 'import os; dir_stat = os.statvfs(\\"%s\\"); """
+            """ {{{user}}}{{{address}}} "{{{python}}} -c 'import os;"""
+            """dir_stat = os.statvfs(\\"{{{dir}}}\\"); """
             """print (dir_stat.f_bavail * dir_stat.f_frsize)'" """
-        ) % (user, address, PYTHON, dir)
-        logging.debug('Mount point size test command is (%s)' % cmd)
+            ).format(
+                user=user,
+                address=address,
+                python=PYTHON,
+                dir=dir
+            )
+        logging.debug('Mount point size test command is {0}'.format(cmd))
         try:
             dir_size, returncode = self.caller.call(cmd)
         except Exception:
@@ -734,17 +780,32 @@ class ISOUploader(object):
             dir_size = dir_size.strip()
             file_size = os.path.getsize(file)
             logging.debug(
-                "Size of %s:\t%s bytes\t%.1f 1K-blocks\t%.1f MB",
-                file, file_size, file_size / 1024, (file_size / 1024) / 1024
+                (
+                    "Size of {file}:\t{file_size} bytes\t{bytes:.1f}"
+                    "1K-blocks\t{blocks:.1f} MB".format(
+                        file=file,
+                        file_size=file_size,
+                        bytes=file_size / 1024,
+                        blocks=(file_size / 1024) / 1024
+                    )
+                )
             )
             logging.debug(
-                "Available space in %s:\t%s bytes\t%.1f 1K-blocks\t%.1f MB",
-                dir, dir_size, float(dir_size) / 1024,
-                (float(dir_size) / 1024) / 1024
+                (
+                    "Available space in {dir}:\t{dir_size}"
+                    "bytes\t{bytes:.1f} 1K-blocks\t{blocks:.1f} MB"
+                ).format(
+                    dir=dir,
+                    dir_size=dir_size,
+                    bytes=float(dir_size) / 1024,
+                    blocks=(float(dir_size) / 1024) / 1024
+                )
             )
             return (dir_size, file_size)
         else:
-            raise Exception("unable to test the available space on %s" % dir)
+            raise Exception(
+                "unable to test the available space on {0}".format(dir)
+            )
 
     def space_test_nfs(self, dir, file, uid, gid):
         """
@@ -758,7 +819,7 @@ class ISOUploader(object):
             dir_stat = os.statvfs(dir)
         except Exception:
             raise Exception(
-                "unable to test the available space on %s" % dir
+                "unable to test the available space on {0}".format(dir)
             )
         finally:
             os.seteuid(0)
@@ -767,12 +828,26 @@ class ISOUploader(object):
         dir_size = (dir_stat.f_bavail * dir_stat.f_frsize)
         file_size = os.path.getsize(file)
         logging.debug(
-            "Size of %s:\t%s bytes\t%.1f 1K-blocks\t%.1f MB",
-            file, file_size, file_size / 1024, (file_size / 1024) / 1024
+            (
+                "Size of {file}:\t{file_size} bytes\t{bytes:.1f}"
+                "1K-blocks\t{blocks:.1f} MB"
+            ).format(
+                file=file,
+                file_size=file_size,
+                bytes=file_size / 1024,
+                blocks=(file_size / 1024) / 1024
+            )
         )
         logging.debug(
-            "Available space in %s:\t%s bytes\t%.1f 1K-blocks\t%.1f MB",
-            dir, dir_size, dir_size / 1024, (dir_size / 1024) / 1024
+            (
+                "Available space in {dir}:\t{dir_size} bytes\t{bytes:.1f}"
+                "1K-blocks\t{blocks:.1f} MB"
+            ).format(
+                dir=dir,
+                dir_size=dir_size,
+                bytes=dir_size / 1024,
+                blocks=(dir_size / 1024) / 1024
+            )
         )
         return (dir_size, file_size)
 
@@ -835,8 +910,8 @@ class ISOUploader(object):
         Returns: True if successful and false otherwise.
         """
         retVal = True
-        logging.debug("euid(%s) egid(%s)" % (os.geteuid(), os.getegid()))
-        umask_save = os.umask(0137)  # Set to 640
+        logging.debug("euid({0}) egid({1})".format(os.geteuid(), os.getegid()))
+        umask_save = os.umask(0o137)  # Set to 640
         try:
             src = open(src_file_name, 'r')
             os.setegid(gid)
@@ -847,10 +922,18 @@ class ISOUploader(object):
                 fdst=dest,
                 quiet=self.configuration.options.quiet,
             )
-        except Exception, e:
+        except Exception as e:
             retVal = False
-            logging.error(_("Problem copying %s to %s.  Message: %s" %
-                          (src_file_name, dest_file_name, e)))
+            logging.error(
+                _(
+                    "Problem copying {src} to {dest}. "
+                    "Message: {exception}".format(
+                        src=src_file_name,
+                        dest=dest_file_name,
+                        exception=e
+                    )
+                )
+            )
         finally:
             os.umask(umask_save)
             os.seteuid(0)
@@ -866,8 +949,8 @@ class ISOUploader(object):
         and then perform the rename.  This is can be important on an
         NFS mount.
         """
-        logging.debug("euid(%s) egid(%s)" % (os.geteuid(), os.getegid()))
-        umask_save = os.umask(0137)  # Set to 640
+        logging.debug("euid({0}) egid({1})".format(os.geteuid(), os.getegid()))
+        umask_save = os.umask(0o137)  # Set to 640
         try:
             os.setegid(gid)
             os.seteuid(uid)
@@ -879,7 +962,7 @@ class ISOUploader(object):
             )
             os.rename(src_file_name, dest_file_name)
             success = True
-        except Exception, e:
+        except Exception as e:
             success = False
             logging.error(
                 _(
@@ -910,21 +993,21 @@ class ISOUploader(object):
         This method will remove a file via SSH.
         """
         cmd = self.format_ssh_command()
-        cmd += """ %s%s "%s %s %s" """ % (
-            user,
-            address,
-            MV,
-            src_file_name,
-            dest_file_name
+        cmd += """ {user}{address} "{mv} {src} {dest}" """.format(
+            user=user,
+            address=address,
+            mv=MV,
+            src=src_file_name,
+            dest=dest_file_name
         )
-        logging.debug('Rename file command is (%s)' % cmd)
+        logging.debug('Rename file command is ({0})'.format(cmd))
         try:
             stdout, returncode = self.caller.call(cmd)
         except Exception:
             raise Exception(
-                "unable to move file from %s to %s" % (
-                    src_file_name,
-                    dest_file_name
+                "unable to move file from {src} to {dest}".format(
+                    srcs=src_file_name,
+                    dest=dest_file_name
                 )
             )
 
@@ -935,14 +1018,17 @@ class ISOUploader(object):
         and then perform the remove.  This is can be important on an
         NFS mount.
         """
-        logging.debug("euid(%s) egid(%s)" % (os.geteuid(), os.getegid()))
+        logging.debug("euid({0}) egid({1})".format(os.geteuid(), os.getegid()))
         try:
             os.setegid(gid)
             os.seteuid(uid)
             os.remove(file_name)
-        except Exception, e:
-            logging.error(_("Problem removing %s.  Message: %s" %
-                          (file_name, e)))
+        except Exception as e:
+            logging.error(
+                _(
+                    "Problem removing {0}.  Message: {1}".format(file_name, e)
+                )
+            )
         finally:
             os.seteuid(0)
             os.setegid(0)
@@ -953,12 +1039,17 @@ class ISOUploader(object):
         """
 
         cmd = self.format_ssh_command()
-        cmd += """ %s%s "%s %s" """ % (user, address, RM, file)
-        logging.debug('Remove file command is (%s)' % cmd)
+        cmd += """ {user}{address} "{rm} {file}" """.format(
+            user=user,
+            address=address,
+            rm=RM,
+            file=file
+        )
+        logging.debug('Remove file command is ({0})'.format(cmd))
         try:
             stdout, returncode = self.caller.call(cmd)
         except Exception:
-            raise Exception("unable to remove %s" % file)
+            raise Exception("unable to remove {0}".format(file))
 
     def refresh_iso_domain(self, id):
         """
@@ -974,15 +1065,14 @@ class ISOUploader(object):
             sd = svc.storage_domains_service().service(id)
             if sd is not None:
                 sd.files_service().list()
-        except Exception, e:
+        except Exception as e:
             logging.warn(
                 _(
                     "failed to refresh the list of files available in the "
-                    "%s ISO storage domain. Please refresh the list manually "
+                    "{0} ISO storage domain. Please refresh the list manually "
                     "using the 'Refresh' button in the oVirt Webadmin "
-                    "console."
+                    "console.".format(self.configuration.get('iso_domain'))
                 ),
-                self.configuration.get('iso_domain')
             )
             logging.debug(e)
 
@@ -1031,13 +1121,13 @@ class ISOUploader(object):
             raise Exception(
                 _("ssh upload is not compatible with glusterfs iso domain")
             )
-        print _("Uploading, please wait...")
+        print(_("Uploading, please wait..."))
         # We need to create the full path to the images directory
         if conf.get('ssh_user'):
             for filename in self.configuration.files:
-                logging.info(_("Start uploading %s "), filename)
+                logging.info(_("Start uploading {0} ".format(filename)))
                 try:
-                    logging.debug('file (%s)' % filename)
+                    logging.debug('file ({0})'.format(filename))
                     dest_dir = os.path.join(path, remote_path)
                     dest_file = os.path.join(
                         dest_dir,
@@ -1048,7 +1138,7 @@ class ISOUploader(object):
                     if conf.get('force') or not retVal:
                         temp_dest_file = os.path.join(
                             dest_dir,
-                            '.%s' % os.path.basename(filename)
+                            '.{0}'.format(os.path.basename(filename))
                         )
                         if retVal:
                             self.remove_file_ssh(user, address, dest_file)
@@ -1058,15 +1148,15 @@ class ISOUploader(object):
                             path,
                             filename
                         )
-                        if (long(dir_size) > long(file_size)):
+                        if (int(dir_size) > int(file_size)):
                             cmd = self.format_ssh_command(SCP)
-                            cmd += ' %s %s%s:%s' % (
-                                filename,
-                                user,
-                                address,
-                                temp_dest_file
+                            cmd += ' {filename} {user}{address}:{dest}'.format(
+                                filename=filename,
+                                user=user,
+                                address=address,
+                                dest=temp_dest_file
                             )
-                            logging.debug('SCP command is (%s)' % cmd)
+                            logging.debug('SCP command is ({0})'.format(cmd))
                             self.caller.call(cmd)
                             if (
                                 self.format_ssh_user(
@@ -1074,27 +1164,36 @@ class ISOUploader(object):
                                 ) == 'root@'
                             ):
                                 cmd = self.format_ssh_command()
-                                cmd += ' %s%s "%s %s:%s %s"' % (
-                                    user,
-                                    address,
-                                    CHOWN,
-                                    NUMERIC_VDSM_ID,
-                                    NUMERIC_VDSM_ID,
-                                    temp_dest_file
+                                cmd += (
+                                    ' {user}{address} "{chown} '
+                                    '{vdsm_id1}:{vdsm_id2} {dest}"'
+                                    ).format(
+                                        user=user,
+                                        address=address,
+                                        chown=CHOWN,
+                                        vdsm_id1=NUMERIC_VDSM_ID,
+                                        vdsm_id2=NUMERIC_VDSM_ID,
+                                        dest=temp_dest_file
+                                    )
+                                logging.debug('CHOWN command is ({0})'.format(
+                                    cmd
+                                    )
                                 )
-                                logging.debug('CHOWN command is (%s)', cmd)
                                 self.caller.call(cmd)
                             # chmod the file to 640.  Do this for every
                             # user (i.e. root and otherwise)
                             cmd = self.format_ssh_command()
-                            cmd += ' %s%s "%s %s %s"' % (
-                                user,
-                                address,
-                                CHMOD,
-                                PERMS_MASK,
-                                temp_dest_file
+                            cmd += (
+                                ' {user}{address} "{chmod}'
+                                '{perm} {dest}"'.format(
+                                    user=user,
+                                    address=address,
+                                    chmod=CHMOD,
+                                    perm=PERMS_MASK,
+                                    dest=temp_dest_file
+                                )
                             )
-                            logging.debug('CHMOD command is (%s)', cmd)
+                            logging.debug('CHMOD command is ({0})'.format(cmd))
                             self.caller.call(cmd)
                             self.rename_file_ssh(
                                 user,
@@ -1106,42 +1205,46 @@ class ISOUploader(object):
                             # in the ISO domain
                             self.refresh_iso_domain(id)
                             logging.info(
-                                _("%s uploaded successfully"), filename
+                                _("{0} uploaded successfully".format(filename))
                             )
                         else:
                             logging.error(
                                 _(
-                                    'There is not enough space in %s '
-                                    '(%s bytes) for %s (%s bytes)'
+                                    'There is not enough space in {path} '
+                                    '({dir_size} bytes) for {filename} '
+                                    '({file_size} bytes)'.format(
+                                        path=path,
+                                        dir_size=dir_size,
+                                        filename=filename,
+                                        file_size=file_size
+                                    )
                                 ),
-                                path,
-                                dir_size,
-                                filename,
-                                file_size
                             )
                     else:
                         ExitCodes.exit_code = ExitCodes.UPLOAD_ERR
                         logging.error(
                             _(
-                                '%s exists on %s.  Either remove it or supply '
-                                'the --force option to overwrite it.'
+                                '{filename} exists on {address}.  Either '
+                                'remove it or supply the --force option to '
+                                'overwrite it.'.format(
+                                    filename=filename,
+                                    address=address
+                                )
                             ),
-                            filename,
-                            address
                         )
-                except Exception, e:
+                except Exception as e:
                     ExitCodes.exit_code = ExitCodes.UPLOAD_ERR
                     logging.error(
                         _(
-                            'Unable to copy %s to ISO storage '
-                            'domain on %s.'
+                            'Unable to copy {0} to ISO storage '
+                            'domain on {1}.'.format(
+                                filename,
+                                self.configuration.get('iso_domain')
+                            )
                         ),
-                        filename,
-                        self.configuration.get('iso_domain')
                     )
                     logging.error(
-                        _('Error message is "%s"'),
-                        str(e).strip()
+                        _('Error message is "{0}"'.format(str(e).strip())),
                     )
         elif domain_type in ('localfs', ):
             ExitCodes.exit_code = ExitCodes.UPLOAD_ERR
@@ -1154,25 +1257,29 @@ class ISOUploader(object):
         elif domain_type in ('glusterfs',):
             # Glusterfs support
             for filename in self.configuration.files:
-                remote = "%s/%s/%s" % (id, DEFAULT_IMAGES_DIR, filename)
-                logging.info(_("Start uploading %s "), filename)
+                remote = "{id}/{images_dir}/{filename}".format(
+                    id=id,
+                    images_dir=DEFAULT_IMAGES_DIR,
+                    filename=filename
+                )
+                logging.info(_("Start uploading {0} ".format(filename)))
                 try:
                     fs = GlfsApi(address, path)
                     fs.upload(filename, remote)
                     fs.umount()
-                except Exception, e:
+                except Exception as e:
                     ExitCodes.exit_code = ExitCodes.CRITICAL
                     logging.error(e)
         else:
             # NFS support.
             tmpDir = tempfile.mkdtemp()
-            logging.debug('local NFS mount point is %s' % tmpDir)
+            logging.debug('local NFS mount point is {0}'.format(tmpDir))
             cmd = self.format_nfs_command(address, path, tmpDir)
             try:
                 self.caller.call(cmd)
                 getpwnam(NFS_USER)
                 for filename in self.configuration.files:
-                    logging.info(_("Start uploading %s "), filename)
+                    logging.info(_("Start uploading {0} ".format(filename)))
                     dest_dir = os.path.join(
                         tmpDir,
                         remote_path
@@ -1205,7 +1312,7 @@ class ISOUploader(object):
                             if (dir_size > file_size):
                                 temp_dest_file = os.path.join(
                                     dest_dir,
-                                    '.%s' % os.path.basename(filename)
+                                    '.{0}'.format(os.path.basename(filename))
                                 )
                                 if self.copy_file(
                                     filename,
@@ -1234,70 +1341,73 @@ class ISOUploader(object):
                             else:
                                 logging.error(
                                     _(
-                                        'There is not enough space in %s '
-                                        '(%s bytes) for %s (%s bytes)'
+                                        'There is not enough space in {path} '
+                                        '({dir_size} bytes) for {filename} '
+                                        '({file_size} bytes)'
+                                    ).format(
+                                        path=path,
+                                        dir_size=dir_size,
+                                        filename=filename,
+                                        file_size=file_size
                                     ),
-                                    path,
-                                    dir_size,
-                                    filename,
-                                    file_size
                                 )
-                        except Exception, e:
+                        except Exception as e:
                             ExitCodes.exit_code = ExitCodes.UPLOAD_ERR
+                            domain = (
+                                self.configuration.get('iso_domain')
+                                if (
+                                    self.configuration.get('iso_domain')
+                                    is not None
+                                )else self.configuration.get('nfs_server')
+                            )
                             logging.error(
                                 _(
-                                    'Unable to copy %s to ISO storage '
-                                    'domain on %s.'
-                                ),
-                                filename,
-                                (
-                                    self.configuration.get('iso_domain')
-                                    if (
-                                        self.configuration.get('iso_domain')
-                                        is not None
-                                    )
-                                    else self.configuration.get('nfs_server')
+                                    'Unable to copy {filename} to ISO storage '
+                                    'domain on {domain}.'
+                                ).format(
+                                    filename=filename,
+                                    domain=domain
                                 )
                             )
                             logging.error(
-                                _('Error message is "%s"'),
-                                str(e).strip()
-                            )
+                                _('Error message is "{0}"').format(
+                                    str(e).strip()
+                                    )
+                            ),
                     else:
                         ExitCodes.exit_code = ExitCodes.UPLOAD_ERR
                         logging.error(
                             _(
-                                '%s exists on %s.  Either remove it or '
+                                '{0} exists on {1}.  Either remove it or '
                                 'supply the --force option to overwrite it.'
-                            ),
-                            filename,
-                            address
+                            ).format(filename, address)
                         )
-
             except KeyError:
                 ExitCodes.exit_code = ExitCodes.CRITICAL
                 logging.error(
                     _(
-                        "A user named %s with a UID and GID of %d must be "
+                        "A user named {0} with a UID and GID of {1} must be "
                         "defined on the system to mount the ISO storage "
-                        "domain on %s as Read/Write"
+                        "domain on {2} as Read/Write"
+                    ).format(
+                        NFS_USER,
+                        NUMERIC_VDSM_ID,
+                        self.configuration.get('iso_domain')
                     ),
-                    NFS_USER,
-                    NUMERIC_VDSM_ID,
-                    self.configuration.get('iso_domain')
                 )
-            except Exception, e:
+            except Exception as e:
                 ExitCodes.exit_code = ExitCodes.CRITICAL
                 logging.error(e)
             finally:
                 try:
-                    cmd = '%s %s %s' % (UMOUNT, NFS_UMOUNT_OPTS, tmpDir)
+                    cmd = '{0} {1} {2}'.format(UMOUNT, NFS_UMOUNT_OPTS, tmpDir)
                     logging.debug(cmd)
                     self.caller.call(cmd)
                     shutil.rmtree(tmpDir)
-                except Exception, e:
+                except Exception as e:
                     ExitCodes.exit_code = ExitCodes.CLEANUP_ERR
                     logging.debug(e)
+
 
 if __name__ == '__main__':
 
@@ -1346,7 +1456,7 @@ multiple files (separated by spaces) and wildcarding."""
 
     parser.add_option(
         "", "--log-file", dest="log_file",
-        help=_("path to log file (default=%s)" % DEFAULT_LOG_FILE),
+        help=_("path to log file (default={0})".format(DEFAULT_LOG_FILE)),
         metavar=_("PATH"),
         default=DEFAULT_LOG_FILE
     )
@@ -1355,7 +1465,7 @@ multiple files (separated by spaces) and wildcarding."""
         "", "--conf-file",
         dest="conf_file",
         help=_(
-            "path to configuration file (default=%s)" % (
+            "path to configuration file (default={0})".format(
                 DEFAULT_CONFIGURATION_FILE
             )
         ),
@@ -1519,18 +1629,18 @@ multiple files (separated by spaces) and wildcarding."""
         conf = Configuration(parser)
 
         isoup = ISOUploader(conf)
-    except KeyboardInterrupt, k:
-        print _("Exiting on user cancel.")
-    except NEISODomain, e:
-        logging.error("%s" % e)
+    except KeyboardInterrupt as k:
+        print(_("Exiting on user cancel."))
+    except NEISODomain as e:
+        logging.error("{0}".format(e))
         sys.exit(ExitCodes.UPLOAD_ERR)
-    except Exception, e:
+    except Exception as e:
         # FIXME: add better exceptions handling
-        logging.error("%s" % e)
+        logging.error("{0}".format(e))
         logging.info(_("Use the -h option to see usage."))
         if conf and (conf.get("verbose")):
             logging.debug(_("Configuration:"))
-            logging.debug(_("command: %s") % conf.command)
+            logging.debug(_("command: {0}".format(conf.command)))
             multilog(logging.debug, traceback.format_exc())
         sys.exit(ExitCodes.CRITICAL)
 

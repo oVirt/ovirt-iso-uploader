@@ -3,6 +3,5 @@ automake
 gettext-devel
 git
 ovirt-engine-sdk-python
-python3-devel
-dnf
-dnf-utils
+python2-devel
+yum-utils

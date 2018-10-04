@@ -56,10 +56,6 @@ AC_ARG_VAR([RPMBUILD], [path to rpmbuild utility])
 AC_CHECK_PROGS([RPMBUILD], [rpmbuild])
 
 AM_PATH_PYTHON([2.6],,[AC_MSG_ERROR([Cannot find python])])
-case "${PYTHON_VERSION}" in
-	2.*);;
-	*) AC_MSG_ERROR([python 2.6 is required])
-esac
 
 AX_PYTHON_MODULE([ovirtsdk4])
 

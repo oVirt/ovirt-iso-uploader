@@ -71,13 +71,15 @@ class GlfsApi:
         if ret == -1:
             err = ctypes.get_errno()
             raise IOError(
-                "glfs_set_volfile_server failed: %s" % os.strerror(err))
+                "glfs_set_volfile_server failed: {0}".format(os.strerror(err))
+            )
 
         ret = self._glfs_init(fs)
         if ret == -1:
             err = ctypes.get_errno()
             raise IOError(
-                "glfs_init failed: %s" % os.strerror(err))
+                "glfs_init failed: {0}".format(os.strerror(err))
+            )
         self.fs = fs
 
     def umount(self):
@@ -85,20 +87,23 @@ class GlfsApi:
         if ret == -1:
             err = ctypes.get_errno()
             raise IOError(
-                "glfs_fini failed: %s" % os.strerror(err))
+                "glfs_fini failed: {0}".format(os.strerror(err))
+            )
 
     def upload(self, local, remote):
-        remote_fd = self._glfs_creat(self.fs, remote, os.O_RDWR, 0644)
+        remote_fd = self._glfs_creat(self.fs, remote, os.O_RDWR, 0o644)
         if remote_fd is None:
             err = ctypes.get_errno()
             raise IOError(
-                "Failed to create %s: %s" % (remote, os.strerror(err)))
+                "Failed to create {0}: {1}".format(remote, os.strerror(err))
+            )
 
         ret = self._glfs_ftruncate(remote_fd, 0)
         if ret == -1:
             err = ctypes.get_errno()
             raise IOError(
-                "Failed to truncate %s: %s" % (remote, os.strerror(err)))
+                "Failed to truncate {0}: {1}".format(remote, os.strerror(err))
+            )
 
         with open(local, "r") as local_fd:
             while True:
@@ -109,6 +114,7 @@ class GlfsApi:
                 if ret == -1:
                     err = ctypes.get_errno()
                     raise IOError(
-                        "Write failed%s" % os.strerror(err))
+                        "Write failed {0}".format(os.strerror(err))
+                    )
 
         self._glfs_close(remote_fd)
