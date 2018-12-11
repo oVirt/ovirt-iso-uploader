@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!@PYTHON@
 
 # Copyright 2011-2018 Red Hat, Inc. and/or its affiliates.
 #
@@ -29,7 +29,7 @@ from pwd import getpwnam
 import getpass
 import ovirtsdk4
 from ovirt_iso_uploader import config
-from .glfs_api import GlfsApi
+from glfs_api import GlfsApi
 
 APP_NAME = "ovirt-iso-uploader"
 VERSION = "4.2.1"

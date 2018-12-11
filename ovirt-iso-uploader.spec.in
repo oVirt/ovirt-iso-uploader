@@ -17,12 +17,19 @@
 # Required users and groups
 %global		vdsm_user @VDSMUSER@
 %global		vdsm_group @VDSMGROUP@
-%global _configure ../configure
 
 %if 0%{?fedora} || 0%{?rhel} >= 8
 %global with_python3 1
+%global required_python python%{python3_pkgversion}
+%global required_python_interpreter %{__python3}
+%global required_python_sitelib %{python3_sitelib}
+%define required_python_lib(l:r:) python%{python3_pkgversion}-%{*}
 %else
 %global with_python3 0
+%global required_python python
+%global required_python_interpreter %{__python2}
+%global required_python_sitelib %{python2_sitelib}
+%define required_python_lib(l:r:) %{-l*}%{*}%{-r*}
 %endif
 
 %if 0%{?rhel} >= 8
@@ -30,6 +37,9 @@
 %else
 %global with_python2 1
 %endif
+
+%global required_python_lib_devel %{required_python_lib -l python2- devel}
+%global required_python_lib_ovirt_engine_sdk4 %{required_python_lib -l python- ovirt-engine-sdk4 >= 4.0.0}
 
 Summary:	ISO Uploader for oVirt Engine
 Name:		%{package_name}
@@ -42,86 +52,28 @@ Source0:	http://resources.ovirt.org/pub/src/%{package_name}/%{package_name}-%{pa
 BuildArch:	noarch
 Requires(pre):	shadow-utils
 BuildRequires:	gettext
+BuildRequires:	%{required_python_lib_devel}
 
-
-%if 0%{?with_python2}
-BuildRequires:	python2-devel
-Requires:		python2-%{name}
-%endif
-
-%if 0%{?with_python3}
-BuildRequires:	python%{python3_pkgversion}-devel
-%if 0%{!?with_python2}
-Requires:		python%{python3_pkgversion}-%{name}
-%endif
-%endif
+Requires:	%{required_python}
+Requires:	%{required_python_lib_ovirt_engine_sdk4}
+Requires:	logrotate
+Requires:	nfs-utils
+Requires:	glusterfs-api
 
 %description
 ISO Uploader tool for oVirt Engine
 
-%if 0%{?with_python2}
-%package -n python2-%{name}
-Summary:	%{summary}
-%{?python_provide:%python_provide python2-%{name}}
-Requires:	python
-Requires:	python-ovirt-engine-sdk4 >= 4.0.0
-Requires:	logrotate
-Requires:	nfs-utils
-Requires:	glusterfs-api
-
-%description -n python2-%{name}
-%{summary}.
-
-%endif # with_python2
-
-%if 0%{?with_python3}
-%package -n python%{python3_pkgversion}-%{name}
-Summary:	%{summary}
-%{?python_provide:%python_provide python%{python3_pkgversion}-%{name}}
-Requires:	python%{python3_pkgversion}
-Requires:	python3-ovirt-engine-sdk4 >= 4.0.0
-Requires:	logrotate
-Requires:	nfs-utils
-Requires:	glusterfs-api
-
-%description -n python%{python3_pkgversion}-%{name}
-%{summary}.
-
-%endif # with_python3
-
 %prep
 %setup -q -n %{package_name}-%{package_version}
-mkdir py2 py3
 
 %build
-%if 0%{?with_python2}
-pushd py2
-%configure PYTHON="%{__python2}" \
+%configure PYTHON="%{required_python_interpreter}" \
 	--docdir="%{_docdir}/%{package_name}-%{version}" \
 	--disable-python-syntax-check
 make %{?_smp_mflags}
-popd
-
-%endif # with_python2
-
-%if 0%{?with_python3}
-pushd py3
-%configure PYTHON="%{__python3}" \
-	--docdir="%{_docdir}/%{package_name}-%{version}" \
-	--disable-python-syntax-check
-make %{?_smp_mflags}
-
-popd
-%endif # with_python3
 
 %check
-%if 0%{?with_python2}
-make -C py2 check
-%endif # with_python2
-
-%if 0%{?with_python3}
-make -C py3 check
-%endif # with_python3
+make check
 
 %pre
 getent group %{vdsm_group} >/dev/null || \
@@ -132,48 +84,20 @@ getent passwd %{vdsm_user} >/dev/null || \
 
 %install
 rm -rf "%{buildroot}"
-%if 0%{?with_python2}
-make -C py2 %{?_smp_mflags} install DESTDIR="%{buildroot}"
-%endif # with_python2
-
-%if 0%{?with_python3}
-make -C py3 %{?_smp_mflags} install DESTDIR="%{buildroot}"
-%endif # with_python3
+make %{?_smp_mflags} install DESTDIR="%{buildroot}"
 
 %files
 
-%if 0%{?with_python2}
-%files -n python2-%{name}
-
 %doc AUTHORS
 %license COPYING
 %dir %{_localstatedir}/log/ovirt-engine/%{package_name}
 %dir %{_sysconfdir}/ovirt-engine/isouploader.conf.d
 %attr(0640, -, -) %config(noreplace) %{_sysconfdir}/ovirt-engine/isouploader.conf
 %config(noreplace) %{_sysconfdir}/logrotate.d/%{package_name}
-%{python2_sitelib}/ovirt_iso_uploader/
+%{required_python_sitelib}/ovirt_iso_uploader/
 %{_bindir}/ovirt-iso-uploader
 %{_bindir}/engine-iso-uploader
 %{_mandir}/man8/*
-
-%endif # with_python2
-
-%if 0%{?with_python3}
-%files -n python%{python3_pkgversion}-%{name}
-
-%doc AUTHORS
-%license COPYING
-%dir %{_localstatedir}/log/ovirt-engine/%{package_name}
-%dir %{_sysconfdir}/ovirt-engine/isouploader.conf.d
-%attr(0640, -, -) %config(noreplace) %{_sysconfdir}/ovirt-engine/isouploader.conf
-%config(noreplace) %{_sysconfdir}/logrotate.d/%{package_name}
-%{python3_sitelib}/ovirt_iso_uploader/
-%{_bindir}/ovirt-iso-uploader
-%{_bindir}/engine-iso-uploader
-%{_mandir}/man8/*
-
-%endif # with_python3
-
 
 %changelog
 * Tue Nov 28 2017 Sandro Bonazzola <sbonazzo@redhat.com> - 4.1.0-1

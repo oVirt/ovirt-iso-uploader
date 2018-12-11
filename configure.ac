@@ -71,7 +71,9 @@ AC_CONFIG_FILES([
 	src/Makefile
 	src/logrotate.d/Makefile
 	po/Makefile.in
+	src/__main__.py
 ])
+
 AC_CONFIG_FILES([po/Makefile], [AM_POSTPROCESS_PO_MAKEFILE])
 AC_OUTPUT
 
