@@ -59,7 +59,7 @@ else:
 
 try:
     raw_input
-except NameError as e:
+except NameError:
     raw_input = input
 
 # {Logging system
@@ -673,7 +673,7 @@ class ISOUploader(object):
         else:
             raise NEISODomain(
                 _(
-                    "An ISO storage domain with"
+                    "An ISO storage domain with "
                     "a name of {0} was not found."
                 ).format(isodomain)
             )
@@ -686,11 +686,11 @@ class ISOUploader(object):
 
     def format_ssh_command(self, cmd=SSH):
         cmd = "{0}".format(cmd)
-        port_flag = "-p" if cmd.startswith(SSH) else "-P"
+        port_flag = " -p" if cmd.startswith(SSH) else " -P"
         if "ssh_port" in self.configuration:
-            cmd += port_flag + "{0[ssh_port]}".format(self.configuration)
+            cmd += port_flag + " {0[ssh_port]}".format(self.configuration)
         if "key_file" in self.configuration:
-            cmd += "-i {0[key_file]} ".format(self.configuration)
+            cmd += " -i {0[key_file]} ".format(self.configuration)
         return cmd
 
     def format_nfs_command(self, address, export, dir):
@@ -760,8 +760,8 @@ class ISOUploader(object):
         returncode = 1
         cmd = self.format_ssh_command()
         cmd += (
-            """ {{{user}}}{{{address}}} "{{{python}}} -c 'import os;"""
-            """dir_stat = os.statvfs(\\"{{{dir}}}\\"); """
+            """ {user}{address} "{python} -c 'import os;"""
+            """dir_stat = os.statvfs(\\"{dir}\\"); """
             """print (dir_stat.f_bavail * dir_stat.f_frsize)'" """
             ).format(
                 user=user,
@@ -1185,7 +1185,7 @@ class ISOUploader(object):
                             cmd = self.format_ssh_command()
                             cmd += (
                                 ' {user}{address} "{chmod}'
-                                '{perm} {dest}"'.format(
+                                ' {perm} {dest}"'.format(
                                     user=user,
                                     address=address,
                                     chmod=CHMOD,
@@ -1629,7 +1629,7 @@ multiple files (separated by spaces) and wildcarding."""
         conf = Configuration(parser)
 
         isoup = ISOUploader(conf)
-    except KeyboardInterrupt as k:
+    except KeyboardInterrupt:
         print(_("Exiting on user cancel."))
     except NEISODomain as e:
         logging.error("{0}".format(e))
