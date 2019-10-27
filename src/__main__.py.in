@@ -81,6 +81,13 @@ DEFAULT_LOG_FILE = os.path.join(
     )
 )
 
+LOG_FILE_SYNTAX = os.path.join(
+    config.DEFAULT_LOG_DIR,
+    '{prefix}-YYYYmmddHHMMSS.log'.format(
+        prefix=config.LOG_PREFIX,
+    )
+)
+
 
 class NotAnError(logging.Filter):
 
@@ -1456,7 +1463,7 @@ multiple files (separated by spaces) and wildcarding."""
 
     parser.add_option(
         "", "--log-file", dest="log_file",
-        help=_("path to log file (default={0})".format(DEFAULT_LOG_FILE)),
+        help=_("path to log file (default={0})".format(LOG_FILE_SYNTAX)),
         metavar=_("PATH"),
         default=DEFAULT_LOG_FILE
     )
