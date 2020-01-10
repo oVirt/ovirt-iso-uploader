@@ -2,6 +2,10 @@ autoconf
 automake
 gettext-devel
 git
-ovirt-engine-sdk-python
+make
+pyflakes
 python2-devel
+python-ovirt-engine-sdk4
+python-pep8
+yum
 yum-utils

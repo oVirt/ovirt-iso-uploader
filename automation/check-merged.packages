@@ -1,9 +1,1 @@
-make
-autoconf
-gettext-devel
-automake
-ovirt-engine-sdk-python
-python-pep8
-pyflakes
-dnf
-dnf-utils
+build-artifacts.packages
